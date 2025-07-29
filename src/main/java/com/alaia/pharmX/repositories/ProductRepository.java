@@ -1,0 +1,7 @@
+package com.alaia.pharmX.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.alaia.pharmX.models.Product;
+
+public interface ProductRepository extends JpaRepository<Product, Integer> {
+}
