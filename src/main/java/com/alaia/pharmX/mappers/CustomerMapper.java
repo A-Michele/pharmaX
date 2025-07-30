@@ -6,7 +6,7 @@ import com.alaia.pharmX.models.Customer;
 
 public class CustomerMapper {
 
-    public static CustomerDto toDto(Customer customer) {
+    public CustomerDto toDto(Customer customer) {
         if (customer == null) return null;
 
         CustomerDto dto = new CustomerDto();
@@ -23,7 +23,7 @@ public class CustomerMapper {
         return dto;
     }
 
-    public static Customer toEntity(CustomerDto dto) {
+    public Customer toEntity(CustomerDto dto) {
         if (dto == null) return null;
 
         Customer customer = new Customer();
