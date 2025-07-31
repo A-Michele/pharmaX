@@ -1,11 +1,13 @@
 package com.alaia.pharmX.mappers;
 
+import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.ProductDto;
 import com.alaia.pharmX.models.Product;
 
+@Component
 public class ProductMapper {
 
-    public static ProductDto toDto(Product product) {
+    public ProductDto toDto(Product product) {
         if (product == null) return null;
 
         ProductDto dto = new ProductDto();
@@ -18,7 +20,7 @@ public class ProductMapper {
         return dto;
     }
 
-    public static Product toEntity(ProductDto dto) {
+    public Product toEntity(ProductDto dto) {
         if (dto == null) return null;
 
         Product product = new Product();

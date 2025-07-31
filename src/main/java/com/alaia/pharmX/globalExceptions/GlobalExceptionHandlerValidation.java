@@ -22,16 +22,16 @@ public class GlobalExceptionHandlerValidation extends ResponseEntityExceptionHan
             MethodArgumentNotValidException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
 
-        // Create a response body map
+        // Crea una mappa per il corpo della risposta
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("timestamp", Instant.now().toString()); // ISO-8601 timestamp
+        responseBody.put("timestamp", Instant.now().toString()); // Timestamp in formato ISO-8601
         responseBody.put("status", status.value());
 
-        // Collect all validation errors
+        // Raccogli gli errori di validazione includendo il nome del campo
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(fieldError -> fieldError.getDefaultMessage())
+                .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())  // Nome del campo + messaggio di errore
                 .collect(Collectors.toList());
 
         responseBody.put("errors", errors);
@@ -39,3 +39,4 @@ public class GlobalExceptionHandlerValidation extends ResponseEntityExceptionHan
         return new ResponseEntity<>(responseBody, headers, status);
     }
 }
+

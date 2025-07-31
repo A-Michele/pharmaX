@@ -14,6 +14,6 @@ public class OrderDto {
     private long id;
     private String code;
     private State state;
-    private String CF;
+    private String cf;
     private Set<OrderLineDto> orderLines;
 }

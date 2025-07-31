@@ -20,7 +20,4 @@ public class Contact {
 
 	private String email;
 	private String phoneNumber;
-
-	@OneToOne
-	private Customer customer;
 }

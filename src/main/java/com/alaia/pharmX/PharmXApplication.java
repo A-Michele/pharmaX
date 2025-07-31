@@ -9,5 +9,4 @@ public class PharmXApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PharmXApplication.class, args);
 	}
-
 }

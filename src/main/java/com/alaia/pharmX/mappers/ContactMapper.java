@@ -1,11 +1,14 @@
 package com.alaia.pharmX.mappers;
 
+import org.springframework.stereotype.Component;
+
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.models.Contact;
 
+@Component
 public class ContactMapper {
 
-    public static ContactDto toDto(Contact contact) {
+    public ContactDto toDto(Contact contact) {
         if (contact == null) return null;
 
         ContactDto dto = new ContactDto();
@@ -17,7 +20,7 @@ public class ContactMapper {
         return dto;
     }
 
-    public static Contact toEntity(ContactDto dto) {
+    public Contact toEntity(ContactDto dto) {
         if (dto == null) return null;
 
         Contact contact = new Contact();

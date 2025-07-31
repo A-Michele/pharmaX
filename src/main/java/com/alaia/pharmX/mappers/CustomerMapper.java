@@ -1,10 +1,17 @@
 package com.alaia.pharmX.mappers;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.alaia.pharmX.dtos.CustomerDto;
 import com.alaia.pharmX.models.Contact;
 import com.alaia.pharmX.models.Customer;
 
+@Component
 public class CustomerMapper {
+
+	@Autowired
+    private ContactMapper contactMapper;
 
     public CustomerDto toDto(Customer customer) {
         if (customer == null) return null;
@@ -14,10 +21,10 @@ public class CustomerMapper {
         dto.setName(customer.getName());
         dto.setShippingAddress(customer.getShippingAddress());
         dto.setBillingAddress(customer.getBillingAddress());
-        dto.setCF(customer.getCF());
+        dto.setCf(customer.getCf());
 
         if (customer.getContacts() != null) {
-        	dto.setContacts(ContactMapper.toDto(customer.getContacts()));
+        	dto.setContacts(contactMapper.toDto(customer.getContacts()));
         }
 
         return dto;
@@ -31,12 +38,10 @@ public class CustomerMapper {
         customer.setName(dto.getName());
         customer.setShippingAddress(dto.getShippingAddress());
         customer.setBillingAddress(dto.getBillingAddress());
-        customer.setCF(dto.getCF());
+        customer.setCf(dto.getCf());
 
         if (dto.getContacts() != null) {
-            Contact contact = ContactMapper.toEntity(dto.getContacts());
-
-            contact.setCustomer(customer);
+            Contact contact = contactMapper.toEntity(dto.getContacts());
             customer.setContacts(contact);
         }
 

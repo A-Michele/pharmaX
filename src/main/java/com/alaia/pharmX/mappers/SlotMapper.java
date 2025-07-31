@@ -1,11 +1,13 @@
 package com.alaia.pharmX.mappers;
 
+import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.SlotDto;
 import com.alaia.pharmX.models.Slot;
 
+@Component
 public class SlotMapper {
 
-    public static SlotDto toDto(Slot slot) {
+    public SlotDto toDto(Slot slot) {
         if (slot == null) return null;
 
         SlotDto dto = new SlotDto();
@@ -18,7 +20,7 @@ public class SlotMapper {
         return dto;
     }
 
-    public static Slot toEntity(SlotDto dto) {
+    public Slot toEntity(SlotDto dto) {
         if (dto == null) return null;
 
         Slot slot = new Slot();

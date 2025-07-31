@@ -1,5 +1,9 @@
 package com.alaia.pharmX.services;
 
-public interface ContactService {
+import java.util.List;
 
+import com.alaia.pharmX.dtos.ContactDto;
+
+public interface ContactService {
+	List<ContactDto> getAllContacts();
 }

@@ -13,5 +13,5 @@ public class CustomerDto {
     private String shippingAddress;
     private String billingAddress;
     private ContactDto contacts;
-    private String CF;
+    private String cf;
 }

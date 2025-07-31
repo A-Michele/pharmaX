@@ -1,11 +1,13 @@
 package com.alaia.pharmX.mappers;
 
+import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.OrderLineDto;
 import com.alaia.pharmX.models.OrderLine;
 
+@Component
 public class OrderLineMapper {
 
-    public static OrderLineDto toDto(OrderLine orderLine) {
+    public OrderLineDto toDto(OrderLine orderLine) {
         if (orderLine == null) return null;
 
         OrderLineDto dto = new OrderLineDto();
@@ -17,7 +19,7 @@ public class OrderLineMapper {
         return dto;
     }
 
-    public static OrderLine toEntity(OrderLineDto dto) {
+    public OrderLine toEntity(OrderLineDto dto) {
         if (dto == null) return null;
 
         OrderLine orderLine = new OrderLine();

@@ -4,14 +4,20 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.SectionDto;
 import com.alaia.pharmX.dtos.SlotDto;
 import com.alaia.pharmX.models.Section;
 import com.alaia.pharmX.models.Slot;
 
+@Component
 public class SectionMapper {
 
-	public static SectionDto toDto(Section section) {
+	@Autowired
+    private SlotMapper slotMapper;
+
+	public SectionDto toDto(Section section) {
         if (section == null) return null;
 
         SectionDto dto = new SectionDto();
@@ -22,7 +28,7 @@ public class SectionMapper {
 
         if (section.getSlots() != null) {
             Set<SlotDto> slotDtos = section.getSlots().stream()
-                .map(SlotMapper::toDto)
+                .map(slotMapper::toDto)
                 .collect(Collectors.toSet());
 
             dto.setSlots(slotDtos);
@@ -31,7 +37,7 @@ public class SectionMapper {
         return dto;
     }
 
-	public static Section toEntity(SectionDto dto) {
+	public Section toEntity(SectionDto dto) {
         if (dto == null) return null;
 
         Section section = new Section();
@@ -44,7 +50,7 @@ public class SectionMapper {
             Set<Slot> slots = new HashSet<>();
 
             for (SlotDto slotDto : dto.getSlots()) {
-                Slot slot = SlotMapper.toEntity(slotDto);
+                Slot slot = slotMapper.toEntity(slotDto);
 
                 //Settiamo il riferimento a Section su ogni Slot
                 slot.setSection(section);

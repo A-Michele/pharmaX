@@ -1,5 +1,8 @@
 package com.alaia.pharmX.models;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,7 +31,8 @@ public class Customer {
 	private String billingAddress;
 
 	@OneToOne
+	@Cascade(CascadeType.ALL)
 	private Contact contacts;
 
-	private String CF;
+	private String cf;
 }
