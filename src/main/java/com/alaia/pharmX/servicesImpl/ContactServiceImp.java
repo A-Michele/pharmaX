@@ -28,7 +28,4 @@ public class ContactServiceImp implements ContactService{
 				.map(contactMapper::toDto)
 				.toList();
 	}
-
-
-
 }

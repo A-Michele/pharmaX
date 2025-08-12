@@ -6,8 +6,6 @@ import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
 
-import jakarta.validation.Valid;
-
 public interface CustomerService {
 	CustomerDto saveCustomer(CustomerDto customerDto);
 	CustomerDto getCustomerById(long id);

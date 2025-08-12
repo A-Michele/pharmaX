@@ -25,6 +25,7 @@ public class OrderMapper {
         dto.setCode(order.getCode());
         dto.setState(order.getState());
         dto.setCf(order.getCf());
+        dto.setDate(order.getDate());
 
         if (order.getOrderLines() != null) {
             Set<OrderLineDto> lines = order.getOrderLines().stream()
@@ -45,6 +46,7 @@ public class OrderMapper {
 	        order.setCode(dto.getCode());
 	        order.setState(dto.getState());
 	        order.setCf(dto.getCf());
+	        order.setDate(dto.getDate());
 
 	        if (dto.getOrderLines() != null) {
 	            Set<OrderLine> lines = new HashSet<>();

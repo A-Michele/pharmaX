@@ -13,23 +13,18 @@ import com.alaia.pharmX.mappers.ContactMapper;
 import com.alaia.pharmX.mappers.CustomerMapper;
 import com.alaia.pharmX.models.Contact;
 import com.alaia.pharmX.models.Customer;
-import com.alaia.pharmX.repositories.ContactRepository;
 import com.alaia.pharmX.repositories.CustomerRepository;
 import com.alaia.pharmX.services.CustomerService;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 
 @Service
 public class CustomerServiceImp implements CustomerService{
 
 	@Autowired
 	private CustomerRepository customerRepository;
-
-	@Autowired
-	private ContactRepository contactRepository;
 
 	@Autowired
     private CustomerMapper customerMapper;
@@ -156,7 +151,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
-	public CustomerDto patchAddressToCustomerByCf(String cf, @Valid AddressUpdateDto addressDto) {
+	public CustomerDto patchAddressToCustomerByCf(String cf, AddressUpdateDto addressDto) {
 
 		Boolean responseDeleteShippingAddress = addressDto.getDeleteShippingAddress();
 	    Boolean responseDeleteBillingAddress = addressDto.getDeleteBillingAddress();

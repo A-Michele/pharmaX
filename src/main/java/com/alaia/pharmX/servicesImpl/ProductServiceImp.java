@@ -1,5 +1,155 @@
 package com.alaia.pharmX.servicesImpl;
 
-public interface ProductServiceImp {
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alaia.pharmX.dtos.ProductDto;
+import com.alaia.pharmX.mappers.ProductMapper;
+import com.alaia.pharmX.models.Product;
+import com.alaia.pharmX.repositories.ProductRepository;
+import com.alaia.pharmX.services.ProductService;
+import com.alaia.pharmX.servicesImpl.exceptions.ProductAlreadyExistsException;
+import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
+
+import jakarta.transaction.Transactional;
+
+@Service
+public class ProductServiceImp implements ProductService{
+	@Autowired
+	private ProductRepository productRepository;
+
+	@Autowired
+    private ProductMapper productMapper;
+
+	@Override
+	@Transactional
+	public ProductDto saveProduct(ProductDto productDto) {
+		if(productRepository.existsByNationalCode(productDto.getNationalCode())) {
+			throw new ProductAlreadyExistsException("Product already exists with national code : " + productDto.getNationalCode());
+		}
+
+		Product product = productMapper.toEntity(productDto);
+		Product productSaved = productRepository.save(product);
+
+		return productMapper.toDto(productSaved);
+	}
+
+	@Override
+	public ProductDto getProductById(long id) {
+		Product product = productRepository.findById(id).orElseThrow(
+        		()-> new ProductNotFoundException("Product not found with ID : " + id));
+		return productMapper.toDto(product);
+	}
+
+	@Override
+	public List<ProductDto> getAllProducts() {
+		List<Product> product = productRepository.findAll();
+		return product.stream()
+				.map(productMapper::toDto)
+				.toList();
+	}
+
+	@Override
+	public ProductDto updateProduct(ProductDto productDto) {
+		Product existingProduct = productRepository.findByNationalCode(productDto.getNationalCode());
+		if(existingProduct == null ) throw new ProductNotFoundException("Product not found with nationa code : " + productDto.getNationalCode());
+
+		existingProduct.setName(productDto.getName());
+		existingProduct.setCategory(productDto.getCategory());
+		existingProduct.setSupplierName(productDto.getSupplierName());
+		existingProduct.setNationalCode(productDto.getNationalCode());
+
+		Product updatedProduct = productRepository.save(existingProduct);
+		return productMapper.toDto(updatedProduct);
+	}
+
+	@Override
+	public ProductDto deleteProduct(String nationalCode) {
+		Product product = productRepository.findByNationalCode(nationalCode);
+	    if (product == null) {
+	        throw new ProductNotFoundException("Product not found with nationalCode : " + nationalCode);
+	    }
+	    productRepository.delete(product);
+	    return productMapper.toDto(product);
+	}
+
+	@Override
+	public ProductDto getProductByNationalCode(String nationalCode) {
+		Product product = productRepository.findByNationalCode(nationalCode);
+		if(product == null ) throw new ProductNotFoundException("Product not found with nationalCode : " + nationalCode);
+		return productMapper.toDto(product);
+	}
+
+	@Override
+	public ProductDto getProductByParam(Long id, String nationalCode) {
+		if(id != null) return this.getProductById(id);
+		else if(nationalCode != null) return this.getProductByNationalCode(nationalCode);
+		return null;
+	}
+
+	@Override
+	@Transactional
+	public ProductDto patchSupplierNameToProductByNationalCode(String nationalCode, String supplierName) {
+		if (nationalCode == null || nationalCode.isBlank()) {
+            throw new IllegalArgumentException("nationalCode non può essere vuoto");
+        }
+        if (supplierName == null || supplierName.isBlank()) {
+            throw new IllegalArgumentException("supplierName non può essere vuoto");
+        }
+
+        Product product = productRepository.findByNationalCode(nationalCode);
+        if (product == null) {
+            throw new ProductNotFoundException("Product not found with nationalCode : " + nationalCode);
+        }
+
+        product.setSupplierName(supplierName);
+
+        Product updated = productRepository.save(product);
+        return productMapper.toDto(updated);
+	}
+
+	@Override
+	@Transactional
+	public List<ProductDto> saveProducts(List<ProductDto> productDtos) {
+	    if (productDtos == null || productDtos.isEmpty()) {
+	        throw new IllegalArgumentException("La lista di prodotti non può essere vuota o nulla");
+	    }
+
+	    for (ProductDto dto : productDtos) {
+	        if (productRepository.existsByNationalCode(dto.getNationalCode())) {
+	            throw new ProductAlreadyExistsException(
+	                "Product already exists with national code : " + dto.getNationalCode()
+	            );
+	        }
+	    }
+
+	    List<Product> products = productDtos.stream()
+	            .map(productMapper::toEntity)
+	            .toList();
+
+	    List<Product> savedProducts = productRepository.saveAll(products);
+
+	    return savedProducts.stream()
+	            .map(productMapper::toDto)
+	            .toList();
+	}
+
+	@Override
+	@Transactional
+	public List<ProductDto> deleteAllProducts() {
+	    List<Product> allProducts = productRepository.findAll();
+
+	    if (allProducts.isEmpty()) {
+	        throw new ProductNotFoundException("No products found to delete");
+	    }
+
+	    productRepository.deleteAll();
+
+	    return allProducts.stream()
+	            .map(productMapper::toDto)
+	            .toList();
+	}
 
 }
