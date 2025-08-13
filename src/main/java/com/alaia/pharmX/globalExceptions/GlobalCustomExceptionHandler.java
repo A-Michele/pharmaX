@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.alaia.pharmX.servicesImpl.exceptions.CategoryNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.InvalidOrderOperationException;
@@ -35,7 +36,8 @@ public class GlobalCustomExceptionHandler {
 							   SectionNotFoundException.class,
 							   SlotNotFoundException.class,
 							   SlotAlreadyExistsException.class,
-							   IllegalStateException.class
+							   IllegalStateException.class,
+							   CategoryNotFoundException.class
 	})
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public @ResponseBody ErrorResponse handleException(Exception ex) {

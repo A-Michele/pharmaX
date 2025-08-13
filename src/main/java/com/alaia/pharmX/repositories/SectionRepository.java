@@ -10,4 +10,6 @@ public interface SectionRepository extends JpaRepository<Section, Long> {
 	Optional<Section> findByCode(String code);
 
 	boolean existsByCode(String code);
+
+	boolean existsByCategory(String category);
 }

@@ -9,7 +9,9 @@ import com.alaia.pharmX.dtos.ProductDto;
 import com.alaia.pharmX.mappers.ProductMapper;
 import com.alaia.pharmX.models.Product;
 import com.alaia.pharmX.repositories.ProductRepository;
+import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.services.ProductService;
+import com.alaia.pharmX.servicesImpl.exceptions.CategoryNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
 
@@ -23,11 +25,18 @@ public class ProductServiceImp implements ProductService{
 	@Autowired
     private ProductMapper productMapper;
 
+	@Autowired
+	private SectionRepository sectionRepository;
+
 	@Override
 	@Transactional
 	public ProductDto saveProduct(ProductDto productDto) {
 		if(productRepository.existsByNationalCode(productDto.getNationalCode())) {
 			throw new ProductAlreadyExistsException("Product already exists with national code : " + productDto.getNationalCode());
+		}
+
+		if(!sectionRepository.existsByCategory( productDto.getCategory() ) ){
+			throw new  CategoryNotFoundException("Category not found: " + productDto.getCategory());
 		}
 
 		Product product = productMapper.toEntity(productDto);
@@ -123,6 +132,9 @@ public class ProductServiceImp implements ProductService{
 	                "Product already exists with national code : " + dto.getNationalCode()
 	            );
 	        }
+	        if(!sectionRepository.existsByCategory( dto.getCategory() ) ){
+				throw new  CategoryNotFoundException("Category not found: " + dto.getCategory());
+			}
 	    }
 
 	    List<Product> products = productDtos.stream()

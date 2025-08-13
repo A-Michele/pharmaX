@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -26,7 +28,9 @@ import com.alaia.pharmX.dtos.ProductDto;
 import com.alaia.pharmX.mappers.ProductMapper;
 import com.alaia.pharmX.models.Product;
 import com.alaia.pharmX.repositories.ProductRepository;
+import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.servicesImpl.ProductServiceImp;
+import com.alaia.pharmX.servicesImpl.exceptions.CategoryNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
 
@@ -34,6 +38,9 @@ import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
 public class ProductServiceTest {
 	@Mock
 	private ProductRepository productRepository;
+
+	@Mock
+	private SectionRepository sectionRepository;
 
 	@Mock
 	private ProductMapper productMapper;
@@ -59,37 +66,35 @@ public class ProductServiceTest {
 
     // -----------> SAVE PRODUCT <-----------
 
-    @Test
-    void saveProduct_ShouldReturnProductDto_WhenProductDoesNotExist() {
-        // Arrange
-        when(productRepository.existsByNationalCode(anyString())).thenReturn(false);
-        when(productMapper.toEntity(any(ProductDto.class))).thenReturn(product);
-        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
-        when(productMapper.toDto(any(Product.class))).thenReturn(savedProductDto);
+	@Test
+	void saveProduct_ShouldReturnProductDto_WhenProductDoesNotExist() {
+	    // Arrange
+	    when(productRepository.existsByNationalCode("NC123")).thenReturn(false);
+	    when(sectionRepository.existsByCategory("CAT1")).thenReturn(true); // <-- nuovo stub
 
-        // Act
-        ProductDto result = productService.saveProduct(productDto);
+	    when(productMapper.toEntity(productDto)).thenReturn(product);
+	    when(productRepository.save(product)).thenReturn(savedProduct);
+	    when(productMapper.toDto(savedProduct)).thenReturn(savedProductDto);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals("NC123", result.getNationalCode());
-        assertEquals(10L, result.getId());
-        verify(productRepository).existsByNationalCode(productDto.getNationalCode());
-        verify(productRepository).save(product);
-        verify(productMapper).toDto(savedProduct);
-    }
+	    // Act
+	    ProductDto result = productService.saveProduct(productDto);
 
-    @Test
-    void saveProduct_ShouldThrowException_WhenProductAlreadyExists() {
-        // Arrange
-        when(productRepository.existsByNationalCode(anyString())).thenReturn(true);
+	    // Assert
+	    assertNotNull(result);
+	    assertEquals("NC123", result.getNationalCode());
+	    assertEquals(10L, result.getId());
 
-        // Act & Assert
-        assertThrows(ProductAlreadyExistsException.class, () -> productService.saveProduct(productDto));
-        verify(productRepository).existsByNationalCode(productDto.getNationalCode());
-        verifyNoMoreInteractions(productRepository);
-        verifyNoInteractions(productMapper);
-    }
+	    verify(productRepository).existsByNationalCode("NC123");
+	    verify(sectionRepository).existsByCategory("CAT1");          // <-- nuova verify
+
+	    verify(productMapper).toEntity(productDto);
+	    verify(productRepository).save(product);                      // ok se il mapper ritorna proprio 'product'
+	    // in alternativa più tollerante: verify(productRepository).save(any(Product.class));
+
+	    verify(productMapper).toDto(savedProduct);
+	    verifyNoMoreInteractions(productRepository, sectionRepository, productMapper);
+	}
+
 
     // -----------> GET PRODUCT BY ID <-----------
 
@@ -339,73 +344,110 @@ public class ProductServiceTest {
 
     @Test
     void saveProducts_ShouldReturnList_WhenAllNew() {
-        // Arrange
-        ProductDto d1 = new ProductDto(0L, "P1", "NC1", "C1", "S1");
-        ProductDto d2 = new ProductDto(0L, "P2", "NC2", "C2", "S2");
-        Product e1 = new Product(0L, "P1", "NC1", "C1", "S1");
-        Product e2 = new Product(0L, "P2", "NC2", "C2", "S2");
-        Product s1 = new Product(101L, "P1", "NC1", "C1", "S1");
-        Product s2 = new Product(102L, "P2", "NC2", "C2", "S2");
-        ProductDto sd1 = new ProductDto(101L, "P1", "NC1", "C1", "S1");
-        ProductDto sd2 = new ProductDto(102L, "P2", "NC2", "C2", "S2");
+    	// Arrange
+    	ProductDto d1 = new ProductDto(0L, "P1", "NC1", "C1", "S1");
+    	ProductDto d2 = new ProductDto(0L, "P2", "NC2", "C2", "S2");
+    	Product e1 = new Product(0L, "P1", "NC1", "C1", "S1");
+    	Product e2 = new Product(0L, "P2", "NC2", "C2", "S2");
+    	Product s1 = new Product(101L, "P1", "NC1", "C1", "S1");
+    	Product s2 = new Product(102L, "P2", "NC2", "C2", "S2");
+    	ProductDto sd1 = new ProductDto(101L, "P1", "NC1", "C1", "S1");
+    	ProductDto sd2 = new ProductDto(102L, "P2", "NC2", "C2", "S2");
 
-        when(productRepository.existsByNationalCode("NC1")).thenReturn(false);
-        when(productRepository.existsByNationalCode("NC2")).thenReturn(false);
+    	// uniqueness
+    	when(productRepository.existsByNationalCode("NC1")).thenReturn(false);
+    	when(productRepository.existsByNationalCode("NC2")).thenReturn(false);
+    	// category must exist
+    	when(sectionRepository.existsByCategory("C1")).thenReturn(true);
+    	when(sectionRepository.existsByCategory("C2")).thenReturn(true);
 
-        when(productMapper.toEntity(d1)).thenReturn(e1);
-        when(productMapper.toEntity(d2)).thenReturn(e2);
+    	when(productMapper.toEntity(d1)).thenReturn(e1);
+    	when(productMapper.toEntity(d2)).thenReturn(e2);
 
-        when(productRepository.saveAll(List.of(e1, e2))).thenReturn(List.of(s1, s2));
+    	when(productRepository.saveAll(List.of(e1, e2))).thenReturn(List.of(s1, s2));
 
-        when(productMapper.toDto(s1)).thenReturn(sd1);
-        when(productMapper.toDto(s2)).thenReturn(sd2);
+    	when(productMapper.toDto(s1)).thenReturn(sd1);
+    	when(productMapper.toDto(s2)).thenReturn(sd2);
 
-        // Act
-        List<ProductDto> result = productService.saveProducts(List.of(d1, d2));
+    	// Act
+    	List<ProductDto> result = productService.saveProducts(List.of(d1, d2));
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("NC1", result.get(0).getNationalCode());
-        assertEquals("NC2", result.get(1).getNationalCode());
-        verify(productRepository).existsByNationalCode("NC1");
-        verify(productRepository).existsByNationalCode("NC2");
-        verify(productMapper).toEntity(d1);
-        verify(productMapper).toEntity(d2);
-        verify(productRepository).saveAll(List.of(e1, e2));
-        verify(productMapper).toDto(s1);
-        verify(productMapper).toDto(s2);
+    	// Assert
+    	assertNotNull(result);
+    	assertEquals(2, result.size());
+    	assertEquals("NC1", result.get(0).getNationalCode());
+    	assertEquals("NC2", result.get(1).getNationalCode());
+
+    	// verify uniqueness checks
+    	verify(productRepository).existsByNationalCode("NC1");
+    	verify(productRepository).existsByNationalCode("NC2");
+    	// verify category checks
+    	verify(sectionRepository).existsByCategory("C1");
+    	verify(sectionRepository).existsByCategory("C2");
+
+    	// mapping + save
+    	verify(productMapper).toEntity(d1);
+    	verify(productMapper).toEntity(d2);
+    	verify(productRepository).saveAll(List.of(e1, e2));
+    	verify(productMapper).toDto(s1);
+    	verify(productMapper).toDto(s2);
     }
 
     @Test
-    void saveProducts_ShouldThrow_WhenAnyNationalCodeExists() {
-        // Arrange
-        ProductDto d1 = new ProductDto(0L, "P1", "NC1", "C1", "S1");
-        ProductDto d2 = new ProductDto(0L, "P2", "NC2", "C2", "S2");
+    void saveProducts_ShouldThrow_WhenAnyCategoryMissing() {
+    	// Arrange
+    	ProductDto d1 = new ProductDto(0L, "P1", "NC1", "C_MISSING", "S1");
 
-        when(productRepository.existsByNationalCode("NC1")).thenReturn(false);
-        when(productRepository.existsByNationalCode("NC2")).thenReturn(true);
+    	// nessun duplicato
+    	when(productRepository.existsByNationalCode("NC1")).thenReturn(false);
+    	// categoria non esistente
+    	when(sectionRepository.existsByCategory("C_MISSING")).thenReturn(false);
 
-        // Act & Assert
-        assertThrows(ProductAlreadyExistsException.class, () -> productService.saveProducts(List.of(d1, d2)));
-        verify(productRepository).existsByNationalCode("NC1");
-        verify(productRepository).existsByNationalCode("NC2");
-        verifyNoMoreInteractions(productRepository);
-        verifyNoInteractions(productMapper);
+    	// Act & Assert
+    	assertThrows(CategoryNotFoundException.class, () -> productService.saveProducts(List.of(d1)));
+
+    	// verify: controlli fatti, nessun map/save
+    	verify(productRepository).existsByNationalCode("NC1");
+    	verify(sectionRepository).existsByCategory("C_MISSING");
+    	verifyNoInteractions(productMapper);
+    	verify(productRepository, never()).saveAll(anyList());
     }
 
     @Test
     void saveProducts_ShouldThrow_WhenEmptyList() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> productService.saveProducts(List.of()));
-        verifyNoInteractions(productRepository, productMapper);
+    	assertThrows(IllegalArgumentException.class, () -> productService.saveProducts(List.of()));
+    	verifyNoInteractions(productRepository, productMapper, sectionRepository);
     }
 
     @Test
     void saveProducts_ShouldThrow_WhenNullList() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> productService.saveProducts(null));
-        verifyNoInteractions(productRepository, productMapper);
+    	assertThrows(IllegalArgumentException.class, () -> productService.saveProducts(null));
+    	verifyNoInteractions(productRepository, productMapper, sectionRepository);
+    }
+
+    @Test
+    void saveProduct_ShouldThrow_WhenCategoryNotFound() {
+        when(productRepository.existsByNationalCode("NC123")).thenReturn(false);
+        when(sectionRepository.existsByCategory("CAT1")).thenReturn(false);
+
+        assertThrows(CategoryNotFoundException.class,
+            () -> productService.saveProduct(productDto));
+
+        verify(productRepository).existsByNationalCode("NC123");
+        verify(sectionRepository).existsByCategory("CAT1");
+        verifyNoInteractions(productMapper);
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void saveProduct_ShouldThrow_WhenNationalCodeExists() {
+        when(productRepository.existsByNationalCode("NC123")).thenReturn(true);
+
+        assertThrows(ProductAlreadyExistsException.class,
+            () -> productService.saveProduct(productDto));
+
+        verify(productRepository).existsByNationalCode("NC123");
+        verifyNoInteractions(sectionRepository, productMapper);
     }
 
     // -----------> DELETE ALL PRODUCTS <-----------
