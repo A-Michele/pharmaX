@@ -34,7 +34,7 @@ import com.alaia.pharmX.servicesImpl.exceptions.OrderNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderLineServiceImpTest {
+public class OrderLineServiceTest {
 
     @Mock
     private ProductRepository productRepository;

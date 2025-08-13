@@ -13,6 +13,10 @@ import com.alaia.pharmX.servicesImpl.exceptions.OrderLineNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.OrderNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
+import com.alaia.pharmX.servicesImpl.exceptions.SectionAlreadyExistsException;
+import com.alaia.pharmX.servicesImpl.exceptions.SectionNotFoundException;
+import com.alaia.pharmX.servicesImpl.exceptions.SlotAlreadyExistsException;
+import com.alaia.pharmX.servicesImpl.exceptions.SlotNotFoundException;
 
 import org.springframework.http.HttpStatus;
 
@@ -26,7 +30,12 @@ public class GlobalCustomExceptionHandler {
 							   OrderLineNotFoundException.class,
 							   OrderAlreadyExistsException.class,
 							   InvalidOrderOperationException.class,
-							   IllegalArgumentException.class
+							   IllegalArgumentException.class,
+							   SectionAlreadyExistsException.class,
+							   SectionNotFoundException.class,
+							   SlotNotFoundException.class,
+							   SlotAlreadyExistsException.class,
+							   IllegalStateException.class
 	})
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public @ResponseBody ErrorResponse handleException(Exception ex) {

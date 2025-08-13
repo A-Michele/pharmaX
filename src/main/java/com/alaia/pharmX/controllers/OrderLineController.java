@@ -50,7 +50,7 @@ public class OrderLineController {
 
     @PatchMapping("/{id}/quantity")
     public ResponseEntity<OrderLineDto> updateQuantity(@PathVariable long id,
-                                                       @RequestParam @Positive int quantity) {
+                                                       @Positive @RequestParam int quantity) {
     	OrderLineDto orderLineDto = orderLineService.updateQuantity(id, quantity);
     	return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
     }

@@ -12,7 +12,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +47,7 @@ import com.alaia.pharmX.servicesImpl.exceptions.OrderNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderServiceImpTest {
+public class OrderServiceTest {
 
     @Mock
     private ProductRepository productRepository;
@@ -118,7 +120,9 @@ public class OrderServiceImpTest {
     void createOrder_ProductNotFoundInLines_ShouldThrow() {
         OrderLineDto l1 = new OrderLineDto(0L, "P1", 2);
         OrderLineDto l2 = new OrderLineDto(0L, "P2", 1);
-        OrderDto dto = new OrderDto(1L, "OCODE", State.OPEN, "CF", null, Set.of(l1, l2));
+
+        Set<OrderLineDto> lines = new LinkedHashSet<>(Arrays.asList(l1, l2));
+        OrderDto dto = new OrderDto(1L, "OCODE", State.OPEN, "CF", null, lines);
 
         when(orderRepository.existsByCode("OCODE")).thenReturn(false);
         when(customerRepository.findByCf("CF")).thenReturn(customer);
@@ -126,8 +130,10 @@ public class OrderServiceImpTest {
         when(productRepository.existsByNationalCode("P2")).thenReturn(false);
 
         assertThrows(ProductNotFoundException.class, () -> service.createOrder(dto));
+
         verify(productRepository).existsByNationalCode("P1");
         verify(productRepository).existsByNationalCode("P2");
+        verifyNoMoreInteractions(productRepository);
     }
 
     @Test
