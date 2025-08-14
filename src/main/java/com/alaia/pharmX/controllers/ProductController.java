@@ -90,4 +90,16 @@ public class ProductController {
 		List<ProductDto> deleted = productService.deleteAllProducts();
 		return new ResponseEntity<>(deleted, HttpStatus.OK);
 	}
+
+	@GetMapping("/product_category/{category}")
+	public ResponseEntity<List<ProductDto>> getProductByCategory(@PathVariable String category) {
+		List<ProductDto> products =  productService.getProductByCategory(category);
+		return new ResponseEntity<>(products, HttpStatus.OK);
+	}
+
+	@DeleteMapping("/delete-safely")
+    public ResponseEntity<ProductDto> deleteProductDtoSafely(@RequestParam(name = "nationalCode") String nationalCode) {
+		ProductDto productDto =  productService.deleteProductSafely(nationalCode);
+        return new ResponseEntity<>(productDto, HttpStatus.OK);
+    }
 }

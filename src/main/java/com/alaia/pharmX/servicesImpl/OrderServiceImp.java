@@ -18,8 +18,10 @@ import com.alaia.pharmX.repositories.OrderLineRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.services.OrderService;
+import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteOrderWithOpenOrdersException;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.InvalidOrderOperationException;
+import com.alaia.pharmX.servicesImpl.exceptions.InvalidStateTransitionException;
 import com.alaia.pharmX.servicesImpl.exceptions.OrderAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.OrderLineNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.OrderNotFoundException;
@@ -112,8 +114,10 @@ public class OrderServiceImp implements OrderService{
 			throw new OrderNotFoundException("Order not found with code: " + code);
 		}
 
-		if (order.getState() == State.COMPLETED && newState == State.OPEN) {
-			throw new InvalidOrderOperationException("Transizione di stato non consentita: COMPLETED -> OPEN");
+		if (!order.getState().canTransitionTo(newState)) {
+		    throw new InvalidStateTransitionException(
+		        "Invalid state transition: " + order.getState() + " → " + newState
+		    );
 		}
 
 		order.setState(newState);
@@ -209,6 +213,22 @@ public class OrderServiceImp implements OrderService{
 		if (order == null) {
 			throw new OrderNotFoundException("Order not found with code: " + code);
 		}
+
+		orderRepository.delete(order);
+		return orderMapper.toDto(order);
+	}
+
+	@Override
+	public OrderDto deleteOrderSafety(String code) {
+		Order order = orderRepository.findByCode(code);
+		if (order == null) {
+			throw new OrderNotFoundException("Order not found with code: " + code);
+		}
+
+		State state = order.getState();
+		if(state != State.OPEN && state !=State.PENDING)
+			throw new CannotDeleteOrderWithOpenOrdersException("Cannot delete order with code: " + code +
+		            ". It has already passed to the state SHIPPING. Current state: " + state);
 
 		orderRepository.delete(order);
 		return orderMapper.toDto(order);

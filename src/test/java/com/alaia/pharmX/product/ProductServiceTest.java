@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -26,10 +27,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.alaia.pharmX.dtos.ProductDto;
 import com.alaia.pharmX.mappers.ProductMapper;
+import com.alaia.pharmX.models.Order;
+import com.alaia.pharmX.models.OrderLine;
 import com.alaia.pharmX.models.Product;
+import com.alaia.pharmX.models.State;
+import com.alaia.pharmX.repositories.OrderLineRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.servicesImpl.ProductServiceImp;
+import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteProductWithOpenOrdersException;
 import com.alaia.pharmX.servicesImpl.exceptions.CategoryNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
@@ -44,6 +50,9 @@ public class ProductServiceTest {
 
 	@Mock
 	private ProductMapper productMapper;
+
+	@Mock
+	private OrderLineRepository orderLineRepository;
 
 	@InjectMocks
 	private ProductServiceImp productService;
@@ -489,4 +498,144 @@ public class ProductServiceTest {
     	verifyNoMoreInteractions(productRepository);
     	verifyNoInteractions(productMapper);
     }
+
+    // -----------> DELETE SAFETY <-----------
+
+    @Test
+    void deleteProductSafely_ShouldThrow_WhenProductNotFound() {
+        when(productRepository.findByNationalCode("NC404")).thenReturn(null);
+
+        assertThrows(ProductNotFoundException.class,
+            () -> productService.deleteProductSafely("NC404"));
+
+        verify(productRepository).findByNationalCode("NC404");
+        verifyNoInteractions(orderLineRepository, productMapper);
+    }
+
+    @Test
+    void deleteProductSafely_ShouldDelete_WhenNoOrderLines() {
+        when(productRepository.findByNationalCode("NC123")).thenReturn(savedProduct);
+        when(orderLineRepository.findByNationalCode("NC123")).thenReturn(List.of());
+        when(productMapper.toDto(savedProduct)).thenReturn(savedProductDto);
+
+        ProductDto result = productService.deleteProductSafely("NC123");
+
+        assertNotNull(result);
+        assertEquals("NC123", result.getNationalCode());
+
+        verify(productRepository).findByNationalCode("NC123");
+        verify(orderLineRepository).findByNationalCode("NC123");
+        verify(productRepository).delete(savedProduct);
+        verify(productMapper).toDto(savedProduct);
+    }
+
+    @Test
+    void deleteProductSafely_ShouldDelete_WhenAllOrdersClosed() {
+        Order order1 = new Order();
+        order1.setState(State.CANCELED);
+        Order order2 = new Order();
+        order2.setState(State.COMPLETED);
+
+        OrderLine ol1 = new OrderLine();
+        ol1.setOrder(order1);
+        OrderLine ol2 = new OrderLine();
+        ol2.setOrder(order2);
+
+        when(productRepository.findByNationalCode("NC123")).thenReturn(savedProduct);
+        when(orderLineRepository.findByNationalCode("NC123")).thenReturn(List.of(ol1, ol2));
+        when(productMapper.toDto(savedProduct)).thenReturn(savedProductDto);
+
+        ProductDto result = productService.deleteProductSafely("NC123");
+
+        assertNotNull(result);
+        assertEquals("NC123", result.getNationalCode());
+
+        verify(productRepository).delete(savedProduct);
+    }
+
+    @Test
+    void deleteProductSafely_ShouldThrow_WhenOrderOpen() {
+        Order openOrder = new Order();
+        openOrder.setCode("ORD123");
+        openOrder.setState(State.OPEN); // stato diverso da CANCELED o COMPLETED
+
+        OrderLine ol = new OrderLine();
+        ol.setOrder(openOrder);
+
+        when(productRepository.findByNationalCode("NC123")).thenReturn(savedProduct);
+        when(orderLineRepository.findByNationalCode("NC123")).thenReturn(List.of(ol));
+
+        CannotDeleteProductWithOpenOrdersException ex = assertThrows(
+            CannotDeleteProductWithOpenOrdersException.class,
+            () -> productService.deleteProductSafely("NC123")
+        );
+
+        assertTrue(ex.getMessage().contains("ORD123"));
+
+        verify(productRepository).findByNationalCode("NC123");
+        verify(orderLineRepository).findByNationalCode("NC123");
+        verify(productRepository, never()).delete(any());
+        verify(productMapper, never()).toDto(any());
+    }
+
+    // -----------> GET PRODUCTS BY CATEGORY <-----------
+
+    @Test
+    void getProductByCategory_ShouldReturnList_WhenProductsExist() {
+    	// Arrange
+    	Product p1 = new Product(201L, "P1", "NC201", "CAT1", "S1");
+    	Product p2 = new Product(202L, "P2", "NC202", "CAT1", "S2");
+    	ProductDto d1 = new ProductDto(201L, "P1", "NC201", "CAT1", "S1");
+    	ProductDto d2 = new ProductDto(202L, "P2", "NC202", "CAT1", "S2");
+
+    	when(productRepository.findByCategory("CAT1")).thenReturn(List.of(p1, p2));
+    	when(productMapper.toDto(p1)).thenReturn(d1);
+    	when(productMapper.toDto(p2)).thenReturn(d2);
+
+    	// Act
+    	List<ProductDto> result = productService.getProductByCategory("CAT1");
+
+    	// Assert
+    	assertNotNull(result);
+    	assertEquals(2, result.size());
+    	assertEquals("CAT1", result.get(0).getCategory());
+    	assertEquals("CAT1", result.get(1).getCategory());
+    	assertEquals("NC201", result.get(0).getNationalCode());
+    	assertEquals("NC202", result.get(1).getNationalCode());
+
+    	verify(productRepository).findByCategory("CAT1");
+    	verify(productMapper).toDto(p1);
+    	verify(productMapper).toDto(p2);
+    	verifyNoMoreInteractions(productRepository, productMapper);
+    }
+
+    @Test
+    void getProductByCategory_ShouldThrow_WhenNoProductsFound() {
+    	// Arrange
+    	when(productRepository.findByCategory("EMPTY_CAT")).thenReturn(List.of());
+
+    	// Act & Assert
+    	assertThrows(ProductNotFoundException.class,
+    			() -> productService.getProductByCategory("EMPTY_CAT"));
+
+    	verify(productRepository).findByCategory("EMPTY_CAT");
+    	verifyNoInteractions(productMapper);
+    }
+
+    @Test
+    void getProductByCategory_ShouldThrow_WhenRepositoryReturnsNull() {
+    	// Arrange
+    	when(productRepository.findByCategory("NULL_CAT")).thenReturn(null);
+
+    	// Act & Assert
+    	assertThrows(ProductNotFoundException.class,
+    			() -> productService.getProductByCategory("NULL_CAT"));
+
+    	verify(productRepository).findByCategory("NULL_CAT");
+    	verifyNoInteractions(productMapper);
+    }
+
+
+
+
 }

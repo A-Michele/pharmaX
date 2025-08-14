@@ -9,4 +9,5 @@ public interface OrderLineRepository extends JpaRepository<OrderLine, Long> {
 
 	void deleteByOrder_Code(String code);
 	List<OrderLine> findByOrder_Code(String orderCode);
+	List<OrderLine> findByNationalCode(String nationalCode);
 }

@@ -7,10 +7,16 @@ import org.springframework.stereotype.Service;
 
 import com.alaia.pharmX.dtos.ProductDto;
 import com.alaia.pharmX.mappers.ProductMapper;
+import com.alaia.pharmX.models.Order;
+import com.alaia.pharmX.models.OrderLine;
 import com.alaia.pharmX.models.Product;
+import com.alaia.pharmX.models.State;
+import com.alaia.pharmX.repositories.OrderLineRepository;
+import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.services.ProductService;
+import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteProductWithOpenOrdersException;
 import com.alaia.pharmX.servicesImpl.exceptions.CategoryNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
@@ -27,6 +33,12 @@ public class ProductServiceImp implements ProductService{
 
 	@Autowired
 	private SectionRepository sectionRepository;
+
+	@Autowired
+	private OrderLineRepository orderLineRepository;
+
+	@Autowired
+	private OrderRepository orderRepository;
 
 	@Override
 	@Transactional
@@ -164,4 +176,51 @@ public class ProductServiceImp implements ProductService{
 	            .toList();
 	}
 
+	@Override
+	public List<ProductDto> getProductByCategory(String category) {
+		List<Product> products = productRepository.findByCategory(category);
+		if(products == null || products.isEmpty())
+			throw new ProductNotFoundException("No products found with category: " + category);
+		return products.stream()
+				.map(productMapper::toDto)
+				.toList();
+	}
+
+	@Override
+	@Transactional
+	public ProductDto deleteProductSafely(String nationalCode) {
+	    Product product = productRepository.findByNationalCode(nationalCode);
+	    if (product == null) {
+	        throw new ProductNotFoundException("Product not found with nationalCode: " + nationalCode);
+	    }
+
+	    List<OrderLine> orderLines = orderLineRepository.findByNationalCode(nationalCode);
+
+	    if (orderLines == null || orderLines.isEmpty()) {
+	        productRepository.delete(product);
+	        return productMapper.toDto(product);
+	    }
+	    Order orderException=null;
+	    boolean hasOpenOrders = false;
+	    for (OrderLine ol : orderLines) {
+	        Order order = ol.getOrder();
+	        State s = order.getState();
+	        if (s != State.CANCELED && s != State.COMPLETED) {
+	        	orderException = order;
+	            hasOpenOrders = true;
+	            break;
+	        }
+	    }
+
+	    if (hasOpenOrders) {
+	        throw new CannotDeleteProductWithOpenOrdersException(
+	            "Cannot delete product with nationalCode: " + nationalCode +
+	            ". Product present in the order: " + orderException.getCode() +
+	            ", with state: " + orderException.getState()
+	        );
+	    }
+
+	    productRepository.delete(product);
+	    return productMapper.toDto(product);
+	}
 }

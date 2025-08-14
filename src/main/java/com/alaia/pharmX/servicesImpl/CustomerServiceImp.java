@@ -1,7 +1,6 @@
 package com.alaia.pharmX.servicesImpl;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -9,14 +8,21 @@ import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
+import com.alaia.pharmX.dtos.OrderDto;
 import com.alaia.pharmX.mappers.ContactMapper;
 import com.alaia.pharmX.mappers.CustomerMapper;
+import com.alaia.pharmX.mappers.OrderMapper;
 import com.alaia.pharmX.models.Contact;
 import com.alaia.pharmX.models.Customer;
+import com.alaia.pharmX.models.Order;
+import com.alaia.pharmX.models.State;
 import com.alaia.pharmX.repositories.CustomerRepository;
+import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.services.CustomerService;
+import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteCustomerWithOpenOrdersException;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
+import com.alaia.pharmX.servicesImpl.exceptions.StateNotFoundException;
 
 import jakarta.transaction.Transactional;
 
@@ -27,10 +33,16 @@ public class CustomerServiceImp implements CustomerService{
 	private CustomerRepository customerRepository;
 
 	@Autowired
+	private OrderRepository orderRepository;
+
+	@Autowired
     private CustomerMapper customerMapper;
 
 	@Autowired
     private ContactMapper contactMapper;
+
+	@Autowired
+    private OrderMapper orderMapper;
 
 	@Transactional
 	@Override
@@ -178,5 +190,87 @@ public class CustomerServiceImp implements CustomerService{
 
 	    Customer updatedCustomer = customerRepository.save(existingCustomer);
 	    return customerMapper.toDto(updatedCustomer);
+	}
+
+	@Override
+	public CustomerDto getCustomerByEmail(String email) {
+		if( email == null) throw new IllegalArgumentException("Email non può essere null");
+		List<Customer> customers = customerRepository.findAll();
+		return customers.stream()
+			    .filter(c -> c.getContacts() != null && email.equals(c.getContacts().getEmail()))
+			    .map(customerMapper::toDto)
+			    .findFirst()
+			    .orElseThrow(() -> new CustomerNotFoundException("No customer found with email: " + email));
+	}
+
+	@Override
+	public List<OrderDto> getOrdersByCF(String cf) {
+
+		Customer existingCustomer = customerRepository.findByCf(cf);
+	    if (existingCustomer == null) {
+	        throw new CustomerNotFoundException("Customer not found with CF: " + cf);
+	    }
+
+		List<Order> orders = orderRepository.findByCf(cf);
+	    return orders.stream()
+	            .map(orderMapper::toDto)
+	            .toList();
+	}
+
+	@Override
+	public List<OrderDto> getOrdersByCFAndType(String cf, String type) {
+
+	    Customer existingCustomer = customerRepository.findByCf(cf);
+	    if (existingCustomer == null) {
+	        throw new CustomerNotFoundException("Customer not found with CF: " + cf);
+	    }
+
+	    final State desiredState;
+	    try {
+	        desiredState = State.valueOf(type.trim().toUpperCase()); // case-insensitive
+	    } catch (IllegalArgumentException ex) {
+	        throw new StateNotFoundException("State not valid: " + type);
+	    }
+
+	    List<Order> orders = orderRepository.findByCfAndState(cf, desiredState);
+	    return orders.stream()
+	            .map(orderMapper::toDto)
+	            .toList();
+	}
+
+	@Override
+	@Transactional
+	public CustomerDto deleteCustomerSafely(String cf) {
+	    Customer customer = customerRepository.findByCf(cf);
+	    if (customer == null) {
+	        throw new CustomerNotFoundException("Customer not found with CF: " + cf);
+	    }
+
+	    List<Order> orders = orderRepository.findByCf(cf);
+
+	    if (orders == null || orders.isEmpty()) {
+	        customerRepository.delete(customer);
+	        return customerMapper.toDto(customer);
+	    }
+
+	    Order blockingOrder = null;
+	    for (Order o : orders) {
+	        State s = o.getState();
+	        if (s != State.COMPLETED && s != State.CANCELED) {
+	            blockingOrder = o;
+	            break;
+	        }
+	    }
+
+	    if (blockingOrder != null) {
+	        throw new CannotDeleteCustomerWithOpenOrdersException(
+	            "Cannot delete customer with CF: " + cf +
+	            ". Product present in the order: " + blockingOrder.getCode() +
+	            ", with state: " + blockingOrder.getState()
+	        );
+	    }
+
+	    customerRepository.delete(customer);
+	    return customerMapper.toDto(customer);
 	}
 }

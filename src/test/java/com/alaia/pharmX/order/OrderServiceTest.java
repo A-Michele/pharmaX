@@ -39,8 +39,10 @@ import com.alaia.pharmX.repositories.OrderLineRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.servicesImpl.OrderServiceImp;
+import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteOrderWithOpenOrdersException;
 import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.InvalidOrderOperationException;
+import com.alaia.pharmX.servicesImpl.exceptions.InvalidStateTransitionException;
 import com.alaia.pharmX.servicesImpl.exceptions.OrderAlreadyExistsException;
 import com.alaia.pharmX.servicesImpl.exceptions.OrderLineNotFoundException;
 import com.alaia.pharmX.servicesImpl.exceptions.OrderNotFoundException;
@@ -246,7 +248,7 @@ public class OrderServiceTest {
     	e.setState(State.COMPLETED);
     	when(orderRepository.findByCode("OCODE")).thenReturn(e);
 
-    	assertThrows(InvalidOrderOperationException.class, () -> service.updateState("OCODE", State.OPEN));
+    	assertThrows(InvalidStateTransitionException.class, () -> service.updateState("OCODE", State.OPEN));
     }
 
     @Test
@@ -258,10 +260,10 @@ public class OrderServiceTest {
     	when(orderRepository.save(e)).thenReturn(e);
     	when(orderMapper.toDto(e)).thenReturn(mapped);
 
-    	OrderDto out = service.updateState("OCODE", State.SHIPPING);
+    	OrderDto out = service.updateState("OCODE", State.PENDING);
 
     	assertEquals(mapped, out);
-    	assertEquals(State.SHIPPING, e.getState());
+    	assertEquals(State.PENDING, e.getState());
     	verify(orderRepository).save(e);
     }
 
@@ -470,4 +472,100 @@ public class OrderServiceTest {
         assertEquals(mapped, out);
         verify(orderRepository).delete(e);
     }
+
+    // ----------->DELETE ORDER SAFETY<-----------
+
+    @Test
+    void deleteOrderSafety_NotFound_ShouldThrow() {
+    	when(orderRepository.findByCode("OCODE")).thenReturn(null);
+
+    	OrderNotFoundException ex = assertThrows(
+    			OrderNotFoundException.class,
+    			() -> service.deleteOrderSafety("OCODE")
+    			);
+
+    	assertTrue(ex.getMessage().contains("Order not found with code: OCODE"));
+
+    	verify(orderRepository).findByCode("OCODE");
+    	verifyNoMoreInteractions(orderRepository);
+    	verifyNoInteractions(orderMapper);
+    }
+
+    @Test
+    void deleteOrderSafety_StateShipping_ShouldThrow() {
+    	Order e = new Order();
+    	e.setCode("OCODE");
+    	e.setState(State.SHIPPING);
+    	when(orderRepository.findByCode("OCODE")).thenReturn(e);
+
+    	CannotDeleteOrderWithOpenOrdersException ex = assertThrows(
+    			CannotDeleteOrderWithOpenOrdersException.class,
+    			() -> service.deleteOrderSafety("OCODE")
+    			);
+
+    	// Il metodo costruisce un messaggio che cita lo state corrente
+    	assertTrue(ex.getMessage().contains("Cannot delete order with code: OCODE"));
+    	assertTrue(ex.getMessage().contains("Current state: SHIPPING"));
+
+    	verify(orderRepository).findByCode("OCODE");
+    	verify(orderRepository, never()).delete(any(Order.class));
+    	verifyNoInteractions(orderMapper);
+    }
+
+    @Test
+    void deleteOrderSafety_StateCompleted_ShouldThrow() {
+    	Order e = new Order();
+    	e.setCode("OCODE");
+    	e.setState(State.COMPLETED);
+    	when(orderRepository.findByCode("OCODE")).thenReturn(e);
+
+    	assertThrows(CannotDeleteOrderWithOpenOrdersException.class,
+    			() -> service.deleteOrderSafety("OCODE"));
+
+    	verify(orderRepository).findByCode("OCODE");
+    	verify(orderRepository, never()).delete(any(Order.class));
+    	verifyNoInteractions(orderMapper);
+    }
+
+    @Test
+    void deleteOrderSafety_StateOpen_ShouldDeleteAndReturnDto() {
+    	Order e = new Order();
+    	e.setCode("OCODE");
+    	e.setState(State.OPEN);
+
+    	OrderDto mapped = new OrderDto();
+    	when(orderRepository.findByCode("OCODE")).thenReturn(e);
+    	doNothing().when(orderRepository).delete(e);
+    	when(orderMapper.toDto(e)).thenReturn(mapped);
+
+    	OrderDto out = service.deleteOrderSafety("OCODE");
+
+    	assertEquals(mapped, out);
+    	verify(orderRepository).findByCode("OCODE");
+    	verify(orderRepository).delete(e);
+    	verify(orderMapper).toDto(e);
+    }
+
+    @Test
+    void deleteOrderSafety_StatePending_ShouldDeleteAndReturnDto() {
+    	Order e = new Order();
+    	e.setCode("OCODE");
+    	e.setState(State.PENDING);
+
+    	OrderDto mapped = new OrderDto();
+    	when(orderRepository.findByCode("OCODE")).thenReturn(e);
+    	doNothing().when(orderRepository).delete(e);
+    	when(orderMapper.toDto(e)).thenReturn(mapped);
+
+    	OrderDto out = service.deleteOrderSafety("OCODE");
+
+    	assertEquals(mapped, out);
+    	verify(orderRepository).findByCode("OCODE");
+    	verify(orderRepository).delete(e);
+    	verify(orderMapper).toDto(e);
+    }
+
+
+
+
 }

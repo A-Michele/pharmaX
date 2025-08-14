@@ -15,4 +15,6 @@ public interface ProductService {
 	ProductDto getProductByParam(Long id, String nationalCode);
 	ProductDto patchSupplierNameToProductByNationalCode(String nationalCode, String supplierName);
 	List<ProductDto> deleteAllProducts();
+	List<ProductDto> getProductByCategory(String category);
+	ProductDto deleteProductSafely(String nationalCode);
 }

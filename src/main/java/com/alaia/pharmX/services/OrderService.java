@@ -18,5 +18,6 @@ public interface OrderService {
     OrderDto removeLine(long orderLineId);
     OrderDto clearLines(String orderCode);
 
+    OrderDto deleteOrderSafety(String code);
     OrderDto deleteOrder(String code);
 }

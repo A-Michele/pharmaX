@@ -92,4 +92,10 @@ public class OrderController {
 		OrderDto orderDto = orderService.deleteOrder(code);
 		return new ResponseEntity<>(orderDto, HttpStatus.OK);
     }
+
+	@DeleteMapping("/delete-safety/{code}")
+    public ResponseEntity<OrderDto> deleteSafety(@PathVariable String code) {
+		OrderDto orderDto = orderService.deleteOrderSafety(code);
+		return new ResponseEntity<>(orderDto, HttpStatus.OK);
+    }
 }

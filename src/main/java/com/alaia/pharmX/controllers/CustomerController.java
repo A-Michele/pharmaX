@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
+import com.alaia.pharmX.dtos.OrderDto;
 import com.alaia.pharmX.services.CustomerService;
 
 import jakarta.validation.Valid;
@@ -86,6 +87,29 @@ public class CustomerController {
         return new ResponseEntity<>(customerDto, HttpStatus.OK);
     }
 
+	@GetMapping("/customer_email/{email}")
+	public ResponseEntity<CustomerDto> getCustomerByEmail(@PathVariable String email) {
+		CustomerDto customerDto =  customerService.getCustomerByEmail(email);
+		return new ResponseEntity<>(customerDto, HttpStatus.OK);
+	}
+
+	@GetMapping("/orders")
+	public ResponseEntity<List<OrderDto>> getOrdersCustomerByEmail(@RequestParam(name = "customer_cf") String customer_cf) {
+		List<OrderDto> orders =  customerService.getOrdersByCF(customer_cf);
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+	}
+
+	@GetMapping("/ordersByType")
+	public ResponseEntity<List<OrderDto>> getOrdersCustomerByCfAndType(@RequestParam(name = "customer_cf") String customer_cf, @RequestParam(name = "type") String type) {
+		List<OrderDto> orders =  customerService.getOrdersByCFAndType(customer_cf, type);
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+	}
+
+	@DeleteMapping("/delete-safely")
+    public ResponseEntity<CustomerDto> deleteSafelyCustomerDto(@RequestParam(name = "cf") String cf) {
+		CustomerDto customerDto = customerService.deleteCustomerSafely(cf);
+        return new ResponseEntity<>(customerDto, HttpStatus.OK);
+    }
 }
 
 
