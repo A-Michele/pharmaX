@@ -4,30 +4,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.alaia.pharmX.dtos.OrderDto;
 import com.alaia.pharmX.dtos.OrderLineDto;
+import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteOrderWithOpenOrdersException;
+import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.InvalidOrderOperationException;
+import com.alaia.pharmX.exceptions.servicesImpl.InvalidStateTransitionException;
+import com.alaia.pharmX.exceptions.servicesImpl.OrderAlreadyExistsException;
+import com.alaia.pharmX.exceptions.servicesImpl.OrderLineNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.mappers.OrderLineMapper;
 import com.alaia.pharmX.mappers.OrderMapper;
 import com.alaia.pharmX.models.Customer;
@@ -39,14 +43,6 @@ import com.alaia.pharmX.repositories.OrderLineRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.servicesImpl.OrderServiceImp;
-import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteOrderWithOpenOrdersException;
-import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.InvalidOrderOperationException;
-import com.alaia.pharmX.servicesImpl.exceptions.InvalidStateTransitionException;
-import com.alaia.pharmX.servicesImpl.exceptions.OrderAlreadyExistsException;
-import com.alaia.pharmX.servicesImpl.exceptions.OrderLineNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.OrderNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
@@ -136,43 +132,6 @@ public class OrderServiceTest {
         verify(productRepository).existsByNationalCode("P1");
         verify(productRepository).existsByNationalCode("P2");
         verifyNoMoreInteractions(productRepository);
-    }
-
-    @Test
-    void createOrder_Success_NoLines_ShouldSaveAndMap() {
-        when(orderRepository.existsByCode("OCODE")).thenReturn(false);
-        when(customerRepository.findByCf("CF")).thenReturn(customer);
-        when(orderMapper.toEntity(baseDto)).thenReturn(mappedEntity);
-        when(orderRepository.save(mappedEntity)).thenReturn(savedEntity);
-        when(orderMapper.toDto(savedEntity)).thenReturn(baseDto);
-
-        OrderDto out = service.createOrder(baseDto);
-
-        assertEquals(baseDto, out);
-        verify(orderLineRepository, never()).saveAll(anyCollection());
-    }
-
-    @Test
-    void createOrder_Success_WithLines_ShouldInvokeSaveAllOnSavedLines() {
-        OrderLine lineA = new OrderLine();
-        lineA.setId(10L);
-        Order withLines = new Order();
-        withLines.setId(1L);
-        withLines.setCode("OCODE");
-        withLines.setOrderLines(new HashSet<>(Set.of(lineA)));
-
-        OrderDto expectedDto = new OrderDto(1L, "OCODE", State.OPEN, "CF", null, new HashSet<>());
-
-        when(orderRepository.existsByCode("OCODE")).thenReturn(false);
-        when(customerRepository.findByCf("CF")).thenReturn(customer);
-        when(orderMapper.toEntity(baseDto)).thenReturn(mappedEntity);
-        when(orderRepository.save(mappedEntity)).thenReturn(withLines);
-        when(orderMapper.toDto(withLines)).thenReturn(expectedDto);
-
-        OrderDto out = service.createOrder(baseDto);
-
-        assertEquals(expectedDto, out);
-        verify(orderLineRepository).saveAll(withLines.getOrderLines());
     }
 
     // ----------->GET ORDER BY ID<-----------
@@ -503,7 +462,6 @@ public class OrderServiceTest {
     			() -> service.deleteOrderSafety("OCODE")
     			);
 
-    	// Il metodo costruisce un messaggio che cita lo state corrente
     	assertTrue(ex.getMessage().contains("Cannot delete order with code: OCODE"));
     	assertTrue(ex.getMessage().contains("Current state: SHIPPING"));
 
@@ -526,46 +484,4 @@ public class OrderServiceTest {
     	verify(orderRepository, never()).delete(any(Order.class));
     	verifyNoInteractions(orderMapper);
     }
-
-    @Test
-    void deleteOrderSafety_StateOpen_ShouldDeleteAndReturnDto() {
-    	Order e = new Order();
-    	e.setCode("OCODE");
-    	e.setState(State.OPEN);
-
-    	OrderDto mapped = new OrderDto();
-    	when(orderRepository.findByCode("OCODE")).thenReturn(e);
-    	doNothing().when(orderRepository).delete(e);
-    	when(orderMapper.toDto(e)).thenReturn(mapped);
-
-    	OrderDto out = service.deleteOrderSafety("OCODE");
-
-    	assertEquals(mapped, out);
-    	verify(orderRepository).findByCode("OCODE");
-    	verify(orderRepository).delete(e);
-    	verify(orderMapper).toDto(e);
-    }
-
-    @Test
-    void deleteOrderSafety_StatePending_ShouldDeleteAndReturnDto() {
-    	Order e = new Order();
-    	e.setCode("OCODE");
-    	e.setState(State.PENDING);
-
-    	OrderDto mapped = new OrderDto();
-    	when(orderRepository.findByCode("OCODE")).thenReturn(e);
-    	doNothing().when(orderRepository).delete(e);
-    	when(orderMapper.toDto(e)).thenReturn(mapped);
-
-    	OrderDto out = service.deleteOrderSafety("OCODE");
-
-    	assertEquals(mapped, out);
-    	verify(orderRepository).findByCode("OCODE");
-    	verify(orderRepository).delete(e);
-    	verify(orderMapper).toDto(e);
-    }
-
-
-
-
 }

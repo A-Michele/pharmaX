@@ -1,7 +1,6 @@
 package com.alaia.pharmX.models;
 
 import java.util.Set;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,6 +18,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Section {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
@@ -31,4 +31,5 @@ public class Section {
 	@OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
 	@ToString.Exclude
 	private Set<Slot> slots;
+
 }

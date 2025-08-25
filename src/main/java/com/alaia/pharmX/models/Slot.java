@@ -1,8 +1,6 @@
 package com.alaia.pharmX.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,6 +20,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Slot {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
@@ -39,4 +38,5 @@ public class Slot {
     @JsonBackReference
     @JoinColumn(name="section_id")
     private Section section;
+
 }

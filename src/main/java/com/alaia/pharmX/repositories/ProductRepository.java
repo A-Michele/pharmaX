@@ -9,4 +9,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	boolean existsByNationalCode(String nationalCode);
 	Product findByNationalCode(String nationalCode);
 	List<Product> findByCategory(String category);
+
 }

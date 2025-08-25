@@ -16,7 +16,6 @@ public class SlotMapper {
         dto.setVolume(slot.getVolume());
         dto.setPickingSequence(slot.getPickingSequence());
 
-        //Non settiamo SectionDto per evitare ricorsione
         return dto;
     }
 
@@ -29,7 +28,6 @@ public class SlotMapper {
         slot.setVolume(dto.getVolume());
         slot.setPickingSequence(dto.getPickingSequence());
 
-        //Section verrà impostato altrove, quando colleghiamo i Slot alla Section
         return slot;
     }
 }

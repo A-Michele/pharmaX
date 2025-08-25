@@ -3,7 +3,6 @@ package com.alaia.pharmX.mappers;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.OrderDto;
@@ -31,37 +30,34 @@ public class OrderMapper {
             Set<OrderLineDto> lines = order.getOrderLines().stream()
                 .map(orderLineMapper::toDto)
                 .collect(Collectors.toSet());
-
             dto.setOrderLines(lines);
         }
 
         return dto;
     }
 
-	 public Order toEntity(OrderDto dto) {
-	        if (dto == null) return null;
+	public Order toEntity(OrderDto dto) {
+		if (dto == null) return null;
 
-	        Order order = new Order();
-	        order.setId(dto.getId());
-	        order.setCode(dto.getCode());
-	        order.setState(dto.getState());
-	        order.setCf(dto.getCf());
-	        order.setDate(dto.getDate());
+		Order order = new Order();
+		order.setId(dto.getId());
+		order.setCode(dto.getCode());
+		order.setState(dto.getState());
+		order.setCf(dto.getCf());
+		order.setDate(dto.getDate());
 
-	        if (dto.getOrderLines() != null) {
-	            Set<OrderLine> lines = new HashSet<>();
+		if (dto.getOrderLines() != null) {
+			Set<OrderLine> lines = new HashSet<>();
 
-	            for (OrderLineDto lineDto : dto.getOrderLines()) {
-	                OrderLine line = orderLineMapper.toEntity(lineDto);
+			for (OrderLineDto lineDto : dto.getOrderLines()) {
+				OrderLine line = orderLineMapper.toEntity(lineDto);
+				line.setOrder(order);
+				lines.add(line);
+			}
 
-	                //Evitiamo il loop: settiamo manualmente l’order su ogni riga
-	                line.setOrder(order);
-	                lines.add(line);
-	            }
+			order.setOrderLines(lines);
+		}
 
-	            order.setOrderLines(lines);
-	        }
-
-	        return order;
-	    }
+		return order;
+	}
 }

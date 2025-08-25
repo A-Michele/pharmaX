@@ -36,6 +36,13 @@ public class OrderLineController {
         return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
 	}
 
+	@PostMapping("/safety")
+    public ResponseEntity<OrderLineDto> createForOrderSafety(@RequestParam @NotBlank String orderCode,
+    		 										   @Valid @RequestBody OrderLineDto lineDto) {
+        OrderLineDto orderLineDto = orderLineService.createForOrderSafety(orderCode, lineDto);
+        return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
+	}
+
     @GetMapping("/{id}")
     public ResponseEntity<OrderLineDto> getById(@PathVariable long id) {
     	OrderLineDto orderLineDto = orderLineService.getById(id);
@@ -55,9 +62,22 @@ public class OrderLineController {
     	return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
     }
 
+    @PatchMapping("/{id}/quantity-safety")
+    public ResponseEntity<OrderLineDto> updateQuantitySafety(@PathVariable long id,
+                                                       @Positive @RequestParam int quantity) {
+    	OrderLineDto orderLineDto = orderLineService.updateQuantitySafety(id, quantity);
+    	return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<OrderLineDto> delete(@PathVariable long id) {
     	OrderLineDto deleteOrderLine = orderLineService.delete(id);
+    	return new ResponseEntity<>(deleteOrderLine, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/safety/{id}")
+    public ResponseEntity<OrderLineDto> deleteSafety(@PathVariable long id) {
+    	OrderLineDto deleteOrderLine = orderLineService.deleteSafety(id);
     	return new ResponseEntity<>(deleteOrderLine, HttpStatus.OK);
     }
 }

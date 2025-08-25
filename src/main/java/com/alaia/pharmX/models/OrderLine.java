@@ -1,7 +1,6 @@
 package com.alaia.pharmX.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,13 +20,14 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderLine {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
 	private long id;
 
 	@Column(name="national_code")
-	private String nationalCode; //Represents the national_code in the Product entity
+	private String nationalCode;
 
 	private int quantity;
 
@@ -37,4 +37,5 @@ public class OrderLine {
     @ToString.Exclude
     @JsonBackReference
     private Order order;
+
 }

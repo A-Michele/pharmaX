@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractUpdateDto {
+
     private long id;
     private String email;
     private String phoneNumber;
@@ -19,6 +20,4 @@ public class ContractUpdateDto {
     @NotNull
     private Boolean deletePhoneNumber;
 
-    //Non includiamo il CustomerDto per evitare loop ricorsivi
 }
-

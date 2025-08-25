@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
@@ -23,8 +24,9 @@ public class Product {
 	@Column(name="national_code")
 	private String nationalCode;
 
-	private String category; //Represents the category field in the Section entity
+	private String category;
 
 	@Column(name="supplier_name")
 	private String supplierName;
+
 }

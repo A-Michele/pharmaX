@@ -15,7 +15,6 @@ public class OrderLineMapper {
         dto.setNationalCode(orderLine.getNationalCode());
         dto.setQuantity(orderLine.getQuantity());
 
-        //NON mappiamo l'Order, per evitare loop
         return dto;
     }
 
@@ -27,7 +26,6 @@ public class OrderLineMapper {
         orderLine.setNationalCode(dto.getNationalCode());
         orderLine.setQuantity(dto.getQuantity());
 
-        //L'ordine va impostato a parte nel contesto del ciclo in OrderMapper
         return orderLine;
     }
 }

@@ -1,7 +1,6 @@
 package com.alaia.pharmX.mappers;
 
 import org.springframework.stereotype.Component;
-
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.models.Contact;
 
@@ -16,7 +15,6 @@ public class ContactMapper {
         dto.setEmail(contact.getEmail());
         dto.setPhoneNumber(contact.getPhoneNumber());
 
-        //Non settiamo customer per evitare ricorsione
         return dto;
     }
 
@@ -28,7 +26,6 @@ public class ContactMapper {
         contact.setEmail(dto.getEmail());
         contact.setPhoneNumber(dto.getPhoneNumber());
 
-        //Anche qui, customer verrà impostato altrove, se necessario
         return contact;
     }
 }

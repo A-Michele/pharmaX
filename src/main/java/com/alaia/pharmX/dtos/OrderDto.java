@@ -17,6 +17,7 @@ import jakarta.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDto {
+
     private long id;
 
 	@NotBlank
@@ -31,4 +32,5 @@ public class OrderDto {
 
     @Valid
     private Set<@Valid OrderLineDto> orderLines;
+
 }

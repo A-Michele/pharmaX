@@ -3,12 +3,15 @@ package com.alaia.pharmX.servicesImpl;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
 import com.alaia.pharmX.dtos.OrderDto;
+import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteCustomerWithOpenOrdersException;
+import com.alaia.pharmX.exceptions.servicesImpl.CustomerAlreadyExistsException;
+import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.StateNotFoundException;
 import com.alaia.pharmX.mappers.ContactMapper;
 import com.alaia.pharmX.mappers.CustomerMapper;
 import com.alaia.pharmX.mappers.OrderMapper;
@@ -19,10 +22,6 @@ import com.alaia.pharmX.models.State;
 import com.alaia.pharmX.repositories.CustomerRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.services.CustomerService;
-import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteCustomerWithOpenOrdersException;
-import com.alaia.pharmX.servicesImpl.exceptions.CustomerAlreadyExistsException;
-import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.StateNotFoundException;
 
 import jakarta.transaction.Transactional;
 
@@ -47,6 +46,7 @@ public class CustomerServiceImp implements CustomerService{
 	@Transactional
 	@Override
 	public CustomerDto saveCustomer(CustomerDto customerDto) {
+
 		if(customerRepository.existsByCf(customerDto.getCf())) {
 			throw new CustomerAlreadyExistsException("Customer already exists with CF : " + customerDto.getCf());
 		}
@@ -59,13 +59,16 @@ public class CustomerServiceImp implements CustomerService{
 
 	@Override
 	public CustomerDto getCustomerById(long id) {
+
 		Customer customer = customerRepository.findById(id).orElseThrow(
         		()-> new CustomerNotFoundException("Customer not found with ID : " + id));
+
 		return customerMapper.toDto(customer);
 	}
 
 	@Override
 	public List<CustomerDto> getAllCustomers() {
+
 		List<Customer> customers = customerRepository.findAll();
 		return customers.stream()
 				.map(customerMapper::toDto)
@@ -75,6 +78,7 @@ public class CustomerServiceImp implements CustomerService{
 	@Transactional
 	@Override
 	public CustomerDto updateCustomer(CustomerDto customerDto) {
+
 		Customer existingCustomer = customerRepository.findByCf(customerDto.getCf());
 		if(existingCustomer == null ) throw new CustomerNotFoundException("Customer not found with CF : " + customerDto.getCf());
 
@@ -108,24 +112,30 @@ public class CustomerServiceImp implements CustomerService{
 	@Transactional
 	@Override
 	public CustomerDto deleteCustomer(String cf) {
-	    // Trova il cliente per CF
+
 	    Customer customer = customerRepository.findByCf(cf);
+
 	    if (customer == null) {
 	        throw new CustomerNotFoundException("Customer not found with CF : " + cf);
 	    }
+
 	    customerRepository.delete(customer);
 	    return customerMapper.toDto(customer);
 	}
 
 	@Override
 	public CustomerDto getCustomerByCF(String cf) {
+
 		Customer customer = customerRepository.findByCf(cf);
+
 		if(customer == null ) throw new CustomerNotFoundException("Customer not found with CF : " + cf);
+
 		return customerMapper.toDto(customer);
 	}
 
 	@Override
 	public CustomerDto getCustomerByParam(Long id, String cf) {
+
 		if(id != null) return this.getCustomerById(id);
 		else if(cf != null) return this.getCustomerByCF(cf);
 		return null;
@@ -160,6 +170,7 @@ public class CustomerServiceImp implements CustomerService{
 
 	    Customer updatedCustomer = customerRepository.save(existingCustomer);
 	    return customerMapper.toDto(updatedCustomer);
+
 	}
 
 	@Override
@@ -172,6 +183,7 @@ public class CustomerServiceImp implements CustomerService{
 	    String billingAddress = addressDto.getBillingAddress();
 
 	    Customer existingCustomer = customerRepository.findByCf(cf);
+
 	    if (existingCustomer == null) {
 	        throw new CustomerNotFoundException("Customer not found with CF: " + cf);
 	    }
@@ -194,6 +206,7 @@ public class CustomerServiceImp implements CustomerService{
 
 	@Override
 	public CustomerDto getCustomerByEmail(String email) {
+
 		if( email == null) throw new IllegalArgumentException("Email non può essere null");
 		List<Customer> customers = customerRepository.findAll();
 		return customers.stream()
@@ -226,6 +239,7 @@ public class CustomerServiceImp implements CustomerService{
 	    }
 
 	    final State desiredState;
+
 	    try {
 	        desiredState = State.valueOf(type.trim().toUpperCase()); // case-insensitive
 	    } catch (IllegalArgumentException ex) {
@@ -241,7 +255,8 @@ public class CustomerServiceImp implements CustomerService{
 	@Override
 	@Transactional
 	public CustomerDto deleteCustomerSafely(String cf) {
-	    Customer customer = customerRepository.findByCf(cf);
+
+		Customer customer = customerRepository.findByCf(cf);
 	    if (customer == null) {
 	        throw new CustomerNotFoundException("Customer not found with CF: " + cf);
 	    }

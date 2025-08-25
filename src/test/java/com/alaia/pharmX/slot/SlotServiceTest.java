@@ -6,22 +6,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.alaia.pharmX.dtos.SlotDto;
 import com.alaia.pharmX.dtos.SlotPatchDto;
+import com.alaia.pharmX.exceptions.servicesImpl.SectionNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.SlotAlreadyExistsException;
+import com.alaia.pharmX.exceptions.servicesImpl.SlotNotFoundException;
 import com.alaia.pharmX.mappers.SlotMapper;
 import com.alaia.pharmX.models.Section;
 import com.alaia.pharmX.models.Slot;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
 import com.alaia.pharmX.servicesImpl.SlotServiceImp;
-import com.alaia.pharmX.servicesImpl.exceptions.SectionNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.SlotAlreadyExistsException;
-import com.alaia.pharmX.servicesImpl.exceptions.SlotNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -364,4 +362,3 @@ class SlotServiceTest {
         verify(slotRepository).save(slot);
     }
 }
-

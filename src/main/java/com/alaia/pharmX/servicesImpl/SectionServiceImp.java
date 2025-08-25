@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.alaia.pharmX.dtos.SectionDto;
 import com.alaia.pharmX.dtos.SectionUpdateDto;
+import com.alaia.pharmX.exceptions.servicesImpl.SectionAlreadyExistsException;
+import com.alaia.pharmX.exceptions.servicesImpl.SectionNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.SlotNotFoundException;
 import com.alaia.pharmX.mappers.SectionMapper;
 import com.alaia.pharmX.mappers.SlotMapper;
 import com.alaia.pharmX.models.Section;
@@ -15,9 +17,6 @@ import com.alaia.pharmX.models.Slot;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
 import com.alaia.pharmX.services.SectionService;
-import com.alaia.pharmX.servicesImpl.exceptions.SectionAlreadyExistsException;
-import com.alaia.pharmX.servicesImpl.exceptions.SectionNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.SlotNotFoundException;
 
 import jakarta.transaction.Transactional;
 
@@ -33,11 +32,9 @@ public class SectionServiceImp implements SectionService{
 	@Autowired
 	private SectionMapper sectionMapper;
 
-	@Autowired
-	private SlotMapper slotMapper;
-
 	@Override
 	public SectionDto create(SectionDto dto) {
+
 		if (sectionRepository.existsByCode(dto.getCode())) {
 			throw new SectionAlreadyExistsException("Section already exists with code: " + dto.getCode());
 		}
@@ -62,20 +59,23 @@ public class SectionServiceImp implements SectionService{
 
 	@Override
 	public SectionDto getById(long id) {
-        Section section = sectionRepository.findById(id)
+
+		Section section = sectionRepository.findById(id)
                 .orElseThrow(() -> new SectionNotFoundException("Section not found with ID : " + id));
         return sectionMapper.toDto(section);
     }
 
 	@Override
 	public SectionDto getByCode(String code) {
-        Section section = sectionRepository.findByCode(code)
+
+		Section section = sectionRepository.findByCode(code)
         		.orElseThrow(() -> new SectionNotFoundException("Section not found with code : " + code));
         return sectionMapper.toDto(section);
     }
 
 	@Override
     public List<SectionDto> getAllSection() {
+
 		List<Section> sections = sectionRepository.findAll();
 		return sections.stream()
 				.map(sectionMapper::toDto)
@@ -85,7 +85,8 @@ public class SectionServiceImp implements SectionService{
 	@Override
 	@Transactional
 	public SectionDto updateNameAndCategory(long id, SectionUpdateDto dto) {
-	    Section section = sectionRepository.findById(id)
+
+		Section section = sectionRepository.findById(id)
 	            .orElseThrow(() -> new SectionNotFoundException("Section not found with ID : " + id));
 
 	    section.setName(dto.getName());
@@ -96,6 +97,7 @@ public class SectionServiceImp implements SectionService{
 
 	@Override
 	public SectionDto delete(long id) {
+
 		Section section = sectionRepository.findById(id)
 				.orElseThrow(() -> new SectionNotFoundException("Section not found with ID : " + id));
 		sectionRepository.delete(section);
@@ -105,7 +107,8 @@ public class SectionServiceImp implements SectionService{
 	@Override
 	@Transactional
 	public SectionDto addExistingSlot(long sectionId, long slotId) {
-	    Section target = sectionRepository.findById(sectionId)
+
+		Section target = sectionRepository.findById(sectionId)
 	            .orElseThrow(() -> new SectionNotFoundException("Section not found with ID : " + sectionId));
 	    Slot slot = slotRepository.findById(slotId)
 	            .orElseThrow(() -> new SlotNotFoundException("Slot not found with ID : " + slotId));
@@ -122,7 +125,8 @@ public class SectionServiceImp implements SectionService{
 	@Override
 	@Transactional
 	public SectionDto removeSlot(long sectionId, long slotId) {
-        Slot slot = slotRepository.findById(slotId)
+
+		Slot slot = slotRepository.findById(slotId)
                 .orElseThrow(() -> new SlotNotFoundException("Slot not found with ID : " + slotId + " for section with ID : " + sectionId ));
 
         Section current = slot.getSection();

@@ -2,10 +2,8 @@ package com.alaia.pharmX.servicesImpl;
 
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.mappers.ContactMapper;
 import com.alaia.pharmX.models.Contact;
@@ -28,4 +26,5 @@ public class ContactServiceImp implements ContactService{
 				.map(contactMapper::toDto)
 				.toList();
 	}
+
 }

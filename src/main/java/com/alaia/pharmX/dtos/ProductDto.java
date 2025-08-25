@@ -8,9 +8,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductDto {
+
     private long id;
     private String name;
     private String nationalCode;
     private String category;
     private String supplierName;
+
 }

@@ -2,17 +2,18 @@ package com.alaia.pharmX.section;
 
 import java.util.Collections;
 import java.util.HashSet;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.alaia.pharmX.dtos.SectionDto;
 import com.alaia.pharmX.dtos.SectionUpdateDto;
 import com.alaia.pharmX.dtos.SlotDto;
+import com.alaia.pharmX.exceptions.servicesImpl.SectionAlreadyExistsException;
+import com.alaia.pharmX.exceptions.servicesImpl.SectionNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.SlotNotFoundException;
 import com.alaia.pharmX.mappers.SectionMapper;
 import com.alaia.pharmX.mappers.SlotMapper;
 import com.alaia.pharmX.models.Section;
@@ -20,9 +21,6 @@ import com.alaia.pharmX.models.Slot;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
 import com.alaia.pharmX.servicesImpl.SectionServiceImp;
-import com.alaia.pharmX.servicesImpl.exceptions.SectionAlreadyExistsException;
-import com.alaia.pharmX.servicesImpl.exceptions.SectionNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.SlotNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -33,7 +31,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -289,7 +286,7 @@ class SectionServiceTest {
     void removeSlot_SlotNotInSection_ShouldThrow() {
         Slot otherSlot = new Slot();
         otherSlot.setId(11L);
-        otherSlot.setSection(new Section()); // id diverso
+        otherSlot.setSection(new Section());
         otherSlot.getSection().setId(99);
 
         when(slotRepository.findById(11L)).thenReturn(Optional.of(otherSlot));

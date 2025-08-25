@@ -1,10 +1,10 @@
 package com.alaia.pharmX.services;
 
 import java.util.List;
-
 import com.alaia.pharmX.dtos.ProductDto;
 
 public interface ProductService {
+
 	ProductDto saveProduct(ProductDto productDto);
 	List<ProductDto> saveProducts(List<ProductDto> productDto);
 	ProductDto getProductById(long id);
@@ -16,5 +16,7 @@ public interface ProductService {
 	ProductDto patchSupplierNameToProductByNationalCode(String nationalCode, String supplierName);
 	List<ProductDto> deleteAllProducts();
 	List<ProductDto> getProductByCategory(String category);
+
 	ProductDto deleteProductSafely(String nationalCode);
+
 }

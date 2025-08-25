@@ -18,4 +18,5 @@ public class AddressUpdateDto {
 
     @NotNull
     private Boolean deleteBillingAddress;
+
 }

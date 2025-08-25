@@ -3,7 +3,6 @@ package com.alaia.pharmX.mappers;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.SectionDto;
@@ -51,10 +50,7 @@ public class SectionMapper {
 
             for (SlotDto slotDto : dto.getSlots()) {
                 Slot slot = slotMapper.toEntity(slotDto);
-
-                //Settiamo il riferimento a Section su ogni Slot
                 slot.setSection(section);
-
                 slots.add(slot);
             }
 

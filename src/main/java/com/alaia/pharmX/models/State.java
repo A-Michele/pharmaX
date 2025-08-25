@@ -36,7 +36,7 @@ public enum State {
      */
     CANCELED;
 
-	//Per controllare se un cambio di stato è valido
+	//To check if a state change is valid
     public boolean canTransitionTo(State next) {
         return switch (this) {
             case OPEN -> next == PENDING || next == CANCELED;

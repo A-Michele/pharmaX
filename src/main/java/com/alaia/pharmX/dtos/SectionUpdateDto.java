@@ -9,9 +9,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SectionUpdateDto {
+
 	@NotBlank
 	private String name;
 
 	@NotBlank
 	private String category;
+
 }

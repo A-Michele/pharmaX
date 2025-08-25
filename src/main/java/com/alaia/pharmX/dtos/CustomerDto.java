@@ -24,4 +24,5 @@ public class CustomerDto {
     @NotNull
     @Size(min = 16, max = 16, message = "must be exactly 16 characters")
     private String cf;
+
 }

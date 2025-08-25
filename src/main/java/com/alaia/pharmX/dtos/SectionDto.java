@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SectionDto {
+
     private int id;
 
     @NotBlank

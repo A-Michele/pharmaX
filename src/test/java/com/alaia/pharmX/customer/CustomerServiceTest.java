@@ -12,22 +12,23 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
 import com.alaia.pharmX.dtos.OrderDto;
+import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteCustomerWithOpenOrdersException;
+import com.alaia.pharmX.exceptions.servicesImpl.CustomerAlreadyExistsException;
+import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.StateNotFoundException;
 import com.alaia.pharmX.mappers.ContactMapper;
 import com.alaia.pharmX.mappers.CustomerMapper;
 import com.alaia.pharmX.mappers.OrderMapper;
@@ -39,10 +40,6 @@ import com.alaia.pharmX.repositories.CustomerRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.servicesImpl.CustomerServiceImp;
 import com.alaia.pharmX.servicesImpl.OrderServiceImp;
-import com.alaia.pharmX.servicesImpl.exceptions.CannotDeleteCustomerWithOpenOrdersException;
-import com.alaia.pharmX.servicesImpl.exceptions.CustomerAlreadyExistsException;
-import com.alaia.pharmX.servicesImpl.exceptions.CustomerNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.StateNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class CustomerServiceTest {
@@ -80,7 +77,6 @@ public class CustomerServiceTest {
 	    contactDto = new ContactDto(1L, "john@example.com", "1234567890");
 	    customerDto = new CustomerDto(1L, "John Doe", "123 Street", "456 Avenue", contactDto, "1234567890123456");
 
-	    // Non impostare manualmente l'id per Contact (viene generato automaticamente dal DB)
 	    customer = new Customer(1L, "John Doe", "123 Street", "456 Avenue", new Contact(0, "john@example.com", "1234567890"), "1234567890123456");
 
 	    contractUpdateDto = new ContractUpdateDto(1L, "newemail@example.com", "9876543210", false, false);
@@ -509,13 +505,11 @@ public class CustomerServiceTest {
 				() -> customerService.deleteCustomerSafely(cf)
 				);
 
-		// Il messaggio deve includere CF, product code e state dell’ordine bloccante
 		assertTrue(ex.getMessage().contains("Cannot delete customer with CF: " + cf));
-		// Il primo ordine “aperto” incontrato nel for è 'pending'
+
 		assertTrue(ex.getMessage().contains("Product present in the order: " + pending.getCode()));
 		assertTrue(ex.getMessage().contains(", with state: " + pending.getState()));
 
-		// Verify: non deve avvenire la delete né la mappatura
 		verify(customerRepository).findByCf(cf);
 		verify(orderRepository).findByCf(cf);
 		verify(customerRepository, never()).delete(any());

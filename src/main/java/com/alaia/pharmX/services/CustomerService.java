@@ -1,13 +1,13 @@
 package com.alaia.pharmX.services;
 
 import java.util.List;
-
 import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
 import com.alaia.pharmX.dtos.OrderDto;
 
 public interface CustomerService {
+
 	CustomerDto saveCustomer(CustomerDto customerDto);
 	CustomerDto getCustomerById(long id);
 	List<CustomerDto> getAllCustomers();
@@ -21,4 +21,5 @@ public interface CustomerService {
 	List<OrderDto> getOrdersByCF(String cf);
 	List<OrderDto> getOrdersByCFAndType(String cf, String state);
 	CustomerDto deleteCustomerSafely(String cf);
+
 }

@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SlotDto {
-    private long id;
+
+	private long id;
 
     @NotBlank
     private String code;
@@ -20,5 +21,4 @@ public class SlotDto {
 
     private String pickingSequence;
 
-    //Non includiamo SectionDto per evitare loop
 }

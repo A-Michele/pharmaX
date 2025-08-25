@@ -2,12 +2,9 @@ package com.alaia.pharmX.models;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,6 +22,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Table(name = "customer_order")
 public class Order {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
@@ -33,11 +31,12 @@ public class Order {
 	private String code;
 
 	private State state;
-	private String cf; //Represents the CF field in the Customer entity
+	private String cf;
 	private LocalDateTime date;
 
 	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Column(name="order_lines")
 	@ToString.Exclude
     private Set<OrderLine> orderLines;
+
 }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderLineDto {
+
     private long id;
 
     @NotBlank
@@ -18,5 +19,4 @@ public class OrderLineDto {
 	@Positive
     private int quantity;
 
-    //NON includiamo l'OrderDto per evitare loop ricorsivi
 }

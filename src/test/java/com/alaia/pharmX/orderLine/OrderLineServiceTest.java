@@ -8,20 +8,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.alaia.pharmX.dtos.OrderLineDto;
+import com.alaia.pharmX.exceptions.servicesImpl.OrderLineNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.mappers.OrderLineMapper;
 import com.alaia.pharmX.models.Order;
 import com.alaia.pharmX.models.OrderLine;
@@ -29,9 +29,6 @@ import com.alaia.pharmX.repositories.OrderLineRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.servicesImpl.OrderLineServiceImp;
-import com.alaia.pharmX.servicesImpl.exceptions.OrderLineNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.OrderNotFoundException;
-import com.alaia.pharmX.servicesImpl.exceptions.ProductNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderLineServiceTest {

@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SlotPatchDto {
+
 	@PositiveOrZero
 	private Integer volume;
 
 	private String pickingSequence;
+
 }

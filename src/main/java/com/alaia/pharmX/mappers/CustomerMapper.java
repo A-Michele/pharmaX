@@ -2,7 +2,6 @@ package com.alaia.pharmX.mappers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import com.alaia.pharmX.dtos.CustomerDto;
 import com.alaia.pharmX.models.Contact;
 import com.alaia.pharmX.models.Customer;

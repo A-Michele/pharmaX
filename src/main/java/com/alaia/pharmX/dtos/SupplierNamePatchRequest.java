@@ -12,4 +12,5 @@ public class SupplierNamePatchRequest {
 
 	@NotBlank
     private String supplierName;
+
 }
