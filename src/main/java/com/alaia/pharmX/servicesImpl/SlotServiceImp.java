@@ -15,7 +15,7 @@ import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
 import com.alaia.pharmX.services.SlotService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SlotServiceImp implements SlotService{

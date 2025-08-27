@@ -85,7 +85,7 @@ public class ReceiptController {
         return new ResponseEntity<>(receipt, HttpStatus.OK);
     }
 
-    @PostMapping("/{id}/cancel")
+    @PatchMapping("/{id}/cancel")
     public ResponseEntity<ReceiptDto> cancel(@PathVariable("id") Long receiptId) {
     	ReceiptDto receiptDto = receiptService.cancel(receiptId);
     	return new ResponseEntity<>(receiptDto, HttpStatus.OK);

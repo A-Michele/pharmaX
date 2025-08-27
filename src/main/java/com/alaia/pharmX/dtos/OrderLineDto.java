@@ -1,5 +1,7 @@
 package com.alaia.pharmX.dtos;
 
+import com.alaia.pharmX.models.LineOrderType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -18,5 +20,8 @@ public class OrderLineDto {
 
 	@Positive
     private int quantity;
+
+	private String lineNumber;
+	private LineOrderType type;
 
 }

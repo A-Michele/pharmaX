@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.OrderDto;
+import com.alaia.pharmX.models.LineOrderType;
 import com.alaia.pharmX.models.Order;
 import com.alaia.pharmX.models.OrderLine;
 import com.alaia.pharmX.dtos.OrderLineDto;
@@ -50,6 +51,12 @@ public class OrderMapper {
 			Set<OrderLine> lines = new HashSet<>();
 
 			for (OrderLineDto lineDto : dto.getOrderLines()) {
+				if(lineDto.getType() == null)
+					lineDto.setType(LineOrderType.OPEN);
+				if(lineDto.getLineNumber() == null) {
+					String rand = java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+					lineDto.setLineNumber("ORDLINE-" + rand);
+				}
 				OrderLine line = orderLineMapper.toEntity(lineDto);
 				line.setOrder(order);
 				lines.add(line);

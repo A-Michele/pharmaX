@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.alaia.pharmX.dtos.OrderDto;
 import com.alaia.pharmX.dtos.OrderLineDto;
-import com.alaia.pharmX.dtos.StateUpdateRequest;
 import com.alaia.pharmX.services.OrderService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -31,12 +30,6 @@ public class OrderController {
 	@PostMapping
     public ResponseEntity<OrderDto> create(@Valid @RequestBody OrderDto orderDto) {
         OrderDto saved = orderService.createOrder(orderDto);
-        return new ResponseEntity<>(saved, HttpStatus.OK);
-    }
-
-	@PostMapping("/safety")
-    public ResponseEntity<OrderDto> createSafety(@Valid @RequestBody OrderDto orderDto) {
-        OrderDto saved = orderService.createOrderSafety(orderDto);
         return new ResponseEntity<>(saved, HttpStatus.OK);
     }
 
@@ -58,20 +51,6 @@ public class OrderController {
 		return new ResponseEntity<>(orderDto, HttpStatus.OK);
 	}
 
-	@PatchMapping("updateState/{code}")
-    public ResponseEntity<OrderDto> updateState(@PathVariable @NotBlank String code,
-    											@Valid @RequestBody StateUpdateRequest body) {
-		OrderDto updated = orderService.updateState(code, body.getNewState());
-		return new ResponseEntity<>(updated, HttpStatus.OK);
-    }
-
-	@PatchMapping("updateState-safety/{code}")
-    public ResponseEntity<OrderDto> updateStateSafety(@PathVariable @NotBlank String code,
-    											@Valid @RequestBody StateUpdateRequest body) {
-		OrderDto updated = orderService.updateStateSafety(code, body.getNewState());
-		return new ResponseEntity<>(updated, HttpStatus.OK);
-    }
-
 	@PostMapping("addLine/{code}")
 	public ResponseEntity<OrderDto> addLine(@PathVariable @NotBlank String code,
 			                                @Valid @RequestBody OrderLineDto lineDto) {
@@ -79,34 +58,15 @@ public class OrderController {
 		return new ResponseEntity<>(updated, HttpStatus.OK);
 	}
 
-	@PostMapping("addLine-safety/{code}")
-	public ResponseEntity<OrderDto> addLineSafety(@PathVariable @NotBlank String code,
-			                                @Valid @RequestBody OrderLineDto lineDto) {
-		OrderDto updated = orderService.addLineSafety(code, lineDto);
-		return new ResponseEntity<>(updated, HttpStatus.OK);
-	}
-
-	@PatchMapping("/lines/{orderLineId}/quantity")
+	@PatchMapping("/lines/{orderLineId}/update")
 	public ResponseEntity<OrderDto> updateLineQuantity(@PathVariable long orderLineId,
 													   @Positive @RequestParam int quantity) {
 		return ResponseEntity.ok(orderService.updateLineQuantity(orderLineId, quantity));
 	}
 
-	@PatchMapping("/lines/{orderLineId}/quantity-safety")
-	public ResponseEntity<OrderDto> updateLineQuantitySafetys(@PathVariable long orderLineId,
-													   @Positive @RequestParam int quantity) {
-		return ResponseEntity.ok(orderService.updateLineQuantitySafety(orderLineId, quantity));
-	}
-
 	@DeleteMapping("/lines/{orderLineId}")
     public ResponseEntity<OrderDto> removeLine(@PathVariable long orderLineId) {
 		OrderDto orderDto = orderService.removeLine(orderLineId);
-        return new ResponseEntity<>(orderDto, HttpStatus.OK);
-    }
-
-	@DeleteMapping("/lines/safety/{orderLineId}")
-    public ResponseEntity<OrderDto> removeLineSafety(@PathVariable long orderLineId) {
-		OrderDto orderDto = orderService.removeLineSafety(orderLineId);
         return new ResponseEntity<>(orderDto, HttpStatus.OK);
     }
 
@@ -116,21 +76,9 @@ public class OrderController {
 		return new ResponseEntity<>(orderDto, HttpStatus.OK);
 	}
 
-	@DeleteMapping("/clearOrder-safety/{code}")
-	public ResponseEntity<OrderDto> clearLinesSafety(@PathVariable @NotBlank String code) {
-		OrderDto orderDto = orderService.clearLinesSafety(code);
-		return new ResponseEntity<>(orderDto, HttpStatus.OK);
-	}
-
-	@DeleteMapping("/delete/{code}")
-    public ResponseEntity<OrderDto> delete(@PathVariable @NotBlank String code) {
+	@PatchMapping("/delete/{code}")
+    public ResponseEntity<OrderDto> delete(@PathVariable String code) {
 		OrderDto orderDto = orderService.deleteOrder(code);
-		return new ResponseEntity<>(orderDto, HttpStatus.OK);
-    }
-
-	@PatchMapping("/delete-safety/{code}")
-    public ResponseEntity<OrderDto> deleteSafety(@PathVariable String code) {
-		OrderDto orderDto = orderService.deleteOrderSafety(code);
 		return new ResponseEntity<>(orderDto, HttpStatus.OK);
     }
 }

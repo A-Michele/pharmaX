@@ -14,10 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.alaia.pharmX.dtos.OrderLineDto;
 import com.alaia.pharmX.services.OrderLineService;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -33,13 +31,6 @@ public class OrderLineController {
     public ResponseEntity<OrderLineDto> createForOrder(@RequestParam @NotBlank String orderCode,
     		 										   @Valid @RequestBody OrderLineDto lineDto) {
         OrderLineDto orderLineDto = orderLineService.createForOrder(orderCode, lineDto);
-        return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
-	}
-
-	@PostMapping("/safety")
-    public ResponseEntity<OrderLineDto> createForOrderSafety(@RequestParam @NotBlank String orderCode,
-    		 										   @Valid @RequestBody OrderLineDto lineDto) {
-        OrderLineDto orderLineDto = orderLineService.createForOrderSafety(orderCode, lineDto);
         return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
 	}
 
@@ -62,22 +53,9 @@ public class OrderLineController {
     	return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}/quantity-safety")
-    public ResponseEntity<OrderLineDto> updateQuantitySafety(@PathVariable long id,
-                                                       @Positive @RequestParam int quantity) {
-    	OrderLineDto orderLineDto = orderLineService.updateQuantitySafety(id, quantity);
-    	return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<OrderLineDto> delete(@PathVariable long id) {
     	OrderLineDto deleteOrderLine = orderLineService.delete(id);
-    	return new ResponseEntity<>(deleteOrderLine, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/safety/{id}")
-    public ResponseEntity<OrderLineDto> deleteSafety(@PathVariable long id) {
-    	OrderLineDto deleteOrderLine = orderLineService.deleteSafety(id);
     	return new ResponseEntity<>(deleteOrderLine, HttpStatus.OK);
     }
 }

@@ -1,7 +1,6 @@
 package com.alaia.pharmX.models.stock;
 
 import java.time.LocalDateTime;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,7 +19,7 @@ public class Stock {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
-	private long id;
+	private Long id;
 
 	private String nationalCode;
 	private int effectiveQuantity;

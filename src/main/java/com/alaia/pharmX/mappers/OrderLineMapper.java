@@ -2,6 +2,7 @@ package com.alaia.pharmX.mappers;
 
 import org.springframework.stereotype.Component;
 import com.alaia.pharmX.dtos.OrderLineDto;
+import com.alaia.pharmX.models.LineOrderType;
 import com.alaia.pharmX.models.OrderLine;
 
 @Component
@@ -14,7 +15,8 @@ public class OrderLineMapper {
         dto.setId(orderLine.getId());
         dto.setNationalCode(orderLine.getNationalCode());
         dto.setQuantity(orderLine.getQuantity());
-
+        dto.setLineNumber(orderLine.getLineNumber());
+        dto.setType(orderLine.getType());
         return dto;
     }
 
@@ -25,7 +27,12 @@ public class OrderLineMapper {
         orderLine.setId(dto.getId());
         orderLine.setNationalCode(dto.getNationalCode());
         orderLine.setQuantity(dto.getQuantity());
-
+        if(orderLine.getType() == null)
+        	orderLine.setType(LineOrderType.OPEN);
+		if(orderLine.getLineNumber() == null) {
+			String rand = java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+			orderLine.setLineNumber("ORDLINE-" + rand);
+		}
         return orderLine;
     }
 }

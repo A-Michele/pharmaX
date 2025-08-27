@@ -23,7 +23,7 @@ import com.alaia.pharmX.repositories.CustomerRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.services.CustomerService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CustomerServiceImp implements CustomerService{

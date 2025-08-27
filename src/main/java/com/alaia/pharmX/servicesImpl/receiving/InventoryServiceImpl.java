@@ -20,8 +20,7 @@ import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.receiving.InventoryMovementRepository;
 import com.alaia.pharmX.repositories.receiving.ReceiptRepository;
 import com.alaia.pharmX.services.receiving.InventoryService;
-
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InventoryServiceImpl implements InventoryService {

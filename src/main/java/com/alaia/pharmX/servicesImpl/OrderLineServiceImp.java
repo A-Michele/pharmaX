@@ -1,12 +1,12 @@
 package com.alaia.pharmX.servicesImpl;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.alaia.pharmX.dtos.OrderLineDto;
-import com.alaia.pharmX.dtos.receiving.StockItemDto;
+import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
+import com.alaia.pharmX.dtos.stock.StockOperation;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidOrderOperationException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidUpdateQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderLineNotFoundException;
@@ -18,15 +18,14 @@ import com.alaia.pharmX.mappers.OrderLineMapper;
 import com.alaia.pharmX.models.Order;
 import com.alaia.pharmX.models.OrderLine;
 import com.alaia.pharmX.models.State;
-import com.alaia.pharmX.models.receiving.InventoryMovement;
 import com.alaia.pharmX.models.receiving.MovementType;
 import com.alaia.pharmX.repositories.OrderLineRepository;
 import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
-import com.alaia.pharmX.repositories.receiving.InventoryMovementRepository;
 import com.alaia.pharmX.services.OrderLineService;
+import com.alaia.pharmX.services.stock.StockService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderLineServiceImp implements OrderLineService{
@@ -44,47 +43,11 @@ public class OrderLineServiceImp implements OrderLineService{
 	private OrderLineRepository orderLineRepository;
 
 	@Autowired
-	private InventoryMovementRepository inventoryRepository;
+	private StockService stockService;
 
 	@Override
     @Transactional
     public OrderLineDto createForOrder(String orderCode, OrderLineDto lineDto) {
-
-        if (!productRepository.existsByNationalCode(lineDto.getNationalCode())) {
-            throw new ProductNotFoundException("Product not found with nationalCode: " + lineDto.getNationalCode());
-        }
-
-        Order order = orderRepository.findByCode(orderCode);
-        if (order == null) {
-            throw new OrderNotFoundException("Order not found with code: " + orderCode);
-        }
-
-        if (order.getOrderLines() == null) {
-            order.setOrderLines(new HashSet<>());
-        }
-
-        OrderLine existing = order.getOrderLines().stream()
-                .filter(l -> l.getNationalCode().equals(lineDto.getNationalCode()))
-                .findFirst()
-                .orElse(null);
-
-        if (existing != null) {
-            existing.setQuantity(existing.getQuantity() + lineDto.getQuantity());
-            OrderLine saved = orderLineRepository.save(existing);
-            return orderLineMapper.toDto(saved);
-        }
-
-        OrderLine entity = orderLineMapper.toEntity(lineDto);
-        entity.setOrder(order);
-        order.getOrderLines().add(entity);
-        OrderLine saved = orderLineRepository.save(entity);
-        return orderLineMapper.toDto(saved);
-
-    }
-
-	@Override
-    @Transactional
-    public OrderLineDto createForOrderSafety(String orderCode, OrderLineDto lineDto) {
 
         if (!productRepository.existsByNationalCode(lineDto.getNationalCode())) {
             throw new ProductNotFoundException("Product not found with nationalCode: " + lineDto.getNationalCode());
@@ -102,12 +65,8 @@ public class OrderLineServiceImp implements OrderLineService{
             order.setOrderLines(new HashSet<>());
         }
 
-        StockItemDto stock = inventoryRepository.findStockDtoByNationalCode(lineDto.getNationalCode());
-		if(stock == null ) throw new StockNotAvailableException("Stock not availabe for product: " + lineDto.getNationalCode());
-		if(lineDto.getQuantity() > stock.getQuantity())
-			throw new QuantityNotAvailableException("Quantity not available. Request: " + lineDto.getQuantity() + ", available: " + stock.getQuantity());
-
-		storeMovement( lineDto, MovementType.ORDER_ALLOCATION, -(lineDto.getQuantity()), order.getId() );
+        StockOperation ope = buildStockOperation(lineDto, MovementType.ORDER_ALLOCATION, lineDto.getQuantity(), order.getId());
+		stockService.reserveQuantity(ope);
 
         OrderLine existing = order.getOrderLines().stream()
                 .filter(l -> l.getNationalCode().equals(lineDto.getNationalCode()))
@@ -153,47 +112,30 @@ public class OrderLineServiceImp implements OrderLineService{
 		OrderLine line = orderLineRepository.findById(orderLineId)
 				.orElseThrow(() -> new OrderLineNotFoundException("OrderLine not found with id: " + orderLineId));
 
-		line.setQuantity(newQuantity);
-		OrderLine saved = orderLineRepository.save(line);
-		return orderLineMapper.toDto(saved);
-	}
-
-	@Override
-	@Transactional
-	public OrderLineDto updateQuantitySafety(long orderLineId, int newQuantity) {
-
-		OrderLine line = orderLineRepository.findById(orderLineId)
-				.orElseThrow(() -> new OrderLineNotFoundException("OrderLine not found with id: " + orderLineId));
-
 		if(line.getOrder().getState() != State.OPEN)
 			throw new InvalidUpdateQuantityException("Can only update if the order is in status: OPEN Current order state : " + line.getOrder().getState());
 
-		StockItemDto stock = inventoryRepository.findStockDtoByNationalCode(line.getNationalCode());
-		if(stock == null ) throw new StockNotAvailableException("Stock not availabe for product: " + line.getNationalCode());
+		AvailableQuantityProduct aqP = stockService.getAvailableQuantity(line.getNationalCode());
+		if(aqP == null ) throw new StockNotAvailableException("Stock not availabe for product: " + line.getNationalCode());
 
-		InventoryMovement m = new InventoryMovement();
-		LocalDateTime now = LocalDateTime.now();
+		int gap = 0;
+		int flag = 0;
 
 		if(newQuantity > line.getQuantity()) {
-			int gap = newQuantity - line.getQuantity();
+			gap = newQuantity - line.getQuantity();
 
-			if(gap > stock.getQuantity())
-				throw new QuantityNotAvailableException("Quantity not available. Current quantity of line: " + line.getQuantity() +", request more: " + gap + ", available in stock: " + stock.getQuantity());
-
-			m.setQuantity(-gap);
+			if(gap > aqP.getAvailableQuantity())
+				throw new QuantityNotAvailableException("Quantity not available. Current quantity of line: " + line.getQuantity() +", request more: " + gap + ", available in stock: " + aqP.getAvailableQuantity());
 
 		}else if(newQuantity < line.getQuantity()) {
-			int gap = line.getQuantity() - newQuantity;
-			m.setQuantity(gap);
+			flag = 1;
+			gap = line.getQuantity() - newQuantity;
 		}else
 			throw new IllegalArgumentException("Errore insert value. Current quantity = new quantity ");
 
-		m.setNationalCode(line.getNationalCode());
-		m.setType(MovementType.ADJUSTMENT);
-		m.setReferenceType("ORDER");
-		m.setReferenceId(line.getOrder().getId());
-		m.setTimestamp(now);
-		inventoryRepository.save(m);
+		StockOperation ope = buildStockOperation(orderLineMapper.toDto(line), MovementType.ADJUSTMENT, gap, line.getOrder().getId());
+		if(flag == 1) stockService.unReserveQuantityOnDeleteOrCanceled(ope);
+		else	stockService.reserveQuantity(ope);
 
 		line.setQuantity(newQuantity);
 		OrderLine saved = orderLineRepository.save(line);
@@ -208,22 +150,6 @@ public class OrderLineServiceImp implements OrderLineService{
 				.orElseThrow(() -> new OrderLineNotFoundException("OrderLine not found with id: " + orderLineId));
 
 		Order order = line.getOrder();
-		if (order != null && order.getOrderLines() != null) {
-			order.getOrderLines().remove(line);
-		}
-
-		orderLineRepository.delete(line);
-		return orderLineMapper.toDto(line);
-	}
-
-	@Override
-	@Transactional
-	public OrderLineDto deleteSafety(long orderLineId) {
-
-		OrderLine line = orderLineRepository.findById(orderLineId)
-				.orElseThrow(() -> new OrderLineNotFoundException("OrderLine not found with id: " + orderLineId));
-
-		Order order = line.getOrder();
 		if (order == null) {
 			throw new InvalidOrderOperationException("The row is not associated with any order");
 		}
@@ -233,7 +159,9 @@ public class OrderLineServiceImp implements OrderLineService{
 
 		if (order.getOrderLines() != null) {
 			order.getOrderLines().removeIf(l -> l.getId() == orderLineId);
-			storeMovement( orderLineMapper.toDto(line), MovementType.ADJUSTMENT, line.getQuantity(), order.getId() );
+
+			StockOperation ope = buildStockOperation(orderLineMapper.toDto(line), MovementType.RETURN, line.getQuantity(), order.getId());
+			stockService.unReserveQuantityOnDeleteOrCanceled(ope);
 		}
 
 		orderLineRepository.delete(line);
@@ -242,16 +170,13 @@ public class OrderLineServiceImp implements OrderLineService{
 
 	//------> HELEPERS <-------
 
-	void storeMovement(OrderLineDto dto, MovementType type, Integer quantity, Long referenceId) {
-		InventoryMovement m = new InventoryMovement();
-
-		LocalDateTime now = LocalDateTime.now();
-		m.setNationalCode(dto.getNationalCode());
-		m.setQuantity(quantity);
-		m.setType( type );
-		m.setReferenceType("ORDER");
-		m.setReferenceId(referenceId);
-		m.setTimestamp(now);
-		inventoryRepository.save(m);
+	StockOperation buildStockOperation(OrderLineDto dto, MovementType type, Integer quantity, Long referenceId) {
+		StockOperation ope = new StockOperation();
+		ope.setNationalCode(dto.getNationalCode());
+		ope.setReferenceType("ORDER");
+		ope.setReferenceId(referenceId);
+		ope.setType(type);
+		ope.setQuantity(quantity);
+		return ope;
 	}
 }

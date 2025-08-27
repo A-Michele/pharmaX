@@ -11,14 +11,13 @@ import com.alaia.pharmX.exceptions.servicesImpl.SectionAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.SectionNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.SlotNotFoundException;
 import com.alaia.pharmX.mappers.SectionMapper;
-import com.alaia.pharmX.mappers.SlotMapper;
 import com.alaia.pharmX.models.Section;
 import com.alaia.pharmX.models.Slot;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
 import com.alaia.pharmX.services.SectionService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SectionServiceImp implements SectionService{

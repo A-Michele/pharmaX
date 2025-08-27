@@ -25,6 +25,7 @@ import com.alaia.pharmX.exceptions.servicesImpl.OrderLineNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.ProductOutOfStockException;
 import com.alaia.pharmX.exceptions.servicesImpl.QuantityNotAvailableException;
 import com.alaia.pharmX.exceptions.servicesImpl.ReceiptLineNotFoundToReceiptException;
 import com.alaia.pharmX.exceptions.servicesImpl.ReceiptNotFoundException;
@@ -35,9 +36,11 @@ import com.alaia.pharmX.exceptions.servicesImpl.SlotNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.StateNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.StockNotAvailableException;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 
 @ControllerAdvice
+@Order(2)
 public class GlobalCustomExceptionHandler {
 
     @ExceptionHandler({
@@ -50,7 +53,8 @@ public class GlobalCustomExceptionHandler {
         CategoryNotFoundException.class,
         StateNotFoundException.class,
         ReceiptNotFoundException.class,
-        LotNotFoundException.class
+        LotNotFoundException.class,
+        ProductOutOfStockException.class
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody

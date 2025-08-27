@@ -18,7 +18,7 @@ import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.services.ProductService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductServiceImp implements ProductService{

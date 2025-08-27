@@ -1,6 +1,9 @@
 package com.alaia.pharmX.dtos.stock;
 
 import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,10 +13,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StockDto {
 
-	private long id;
+	private Long id;
+
+	@NotBlank
 	private String nationalCode;
+
+	@Min(0)
 	private int effectiveQuantity;
+
+	@Min(0)
 	private int reservedQuantity;
+
 	private LocalDateTime lastModification;
 
 }

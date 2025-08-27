@@ -30,6 +30,8 @@ public class InventoryMovement {
 	private Integer quantity;
 	private MovementType type;
 
+	private QuantityType typeQuantity;
+
 	// References to the source operation
     private String referenceType;
 

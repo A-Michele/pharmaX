@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import com.alaia.pharmX.dtos.receiving.CreateLotRequest;
 import com.alaia.pharmX.dtos.receiving.CreateReceiptLineRequest;
 import com.alaia.pharmX.dtos.receiving.CreateReceiptRequest;
@@ -15,6 +16,7 @@ import com.alaia.pharmX.dtos.receiving.ReceiptDto;
 import com.alaia.pharmX.dtos.receiving.SlotDefiniedAtPost;
 import com.alaia.pharmX.dtos.receiving.UpdateReceiptLineRequest;
 import com.alaia.pharmX.dtos.receiving.VerifyReceiptLineRequest;
+import com.alaia.pharmX.dtos.stock.StockOperation;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidProductConfigurationException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidSlotConfigurationException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidStateTransitionException;
@@ -23,7 +25,6 @@ import com.alaia.pharmX.exceptions.servicesImpl.LotAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.NoMatchCategoryException;
 import com.alaia.pharmX.exceptions.servicesImpl.NonCompliantQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
-import com.alaia.pharmX.exceptions.servicesImpl.QuantityMustBePositiveException;
 import com.alaia.pharmX.exceptions.servicesImpl.ReceiptLineNotFoundToReceiptException;
 import com.alaia.pharmX.exceptions.servicesImpl.ReceiptNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.SlotNotFoundException;
@@ -31,7 +32,6 @@ import com.alaia.pharmX.mappers.receiving.ReceiptMapper;
 import com.alaia.pharmX.models.Product;
 import com.alaia.pharmX.models.Section;
 import com.alaia.pharmX.models.Slot;
-import com.alaia.pharmX.models.receiving.InventoryMovement;
 import com.alaia.pharmX.models.receiving.Lot;
 import com.alaia.pharmX.models.receiving.MovementType;
 import com.alaia.pharmX.models.receiving.Receipt;
@@ -41,22 +41,19 @@ import com.alaia.pharmX.models.receiving.ReceiptState;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
-import com.alaia.pharmX.repositories.receiving.InventoryMovementRepository;
 import com.alaia.pharmX.repositories.receiving.LotRepository;
 import com.alaia.pharmX.repositories.receiving.ReceiptLineRepository;
 import com.alaia.pharmX.repositories.receiving.ReceiptRepository;
 import com.alaia.pharmX.services.receiving.ReceiptService;
+import com.alaia.pharmX.services.stock.StockService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReceiptServiceImpl implements ReceiptService{
 
 	@Autowired
 	private ReceiptRepository receiptRepository;
-
-	@Autowired
-	private InventoryMovementRepository movementRepository;
 
 	@Autowired
 	private LotRepository lotRepository;
@@ -75,6 +72,9 @@ public class ReceiptServiceImpl implements ReceiptService{
 
 	@Autowired
 	private ReceiptMapper receiptMapper;
+
+	@Autowired
+	private StockService stockService;
 
 	@Override
 	@Transactional
@@ -132,10 +132,7 @@ public class ReceiptServiceImpl implements ReceiptService{
 		mustBeState(receipt, ReceiptState.DRAFT);
 		ReceiptLine rl = findLine(receipt, lineId);
 
-		if(line.getQtyExpected() != null) {
-			if(line.getQtyExpected() < 0 ) throw new QuantityMustBePositiveException("qtyExpected must be >= 0");
-			rl.setQtyExpected(line.getQtyExpected());
-		}
+		if(line.getQtyExpected() != null) rl.setQtyExpected(line.getQtyExpected());
 
 		return receiptMapper.toDto(receipt);
 	}
@@ -149,6 +146,7 @@ public class ReceiptServiceImpl implements ReceiptService{
 		receipt.getLines().remove(rl);
 		receiptLineRepository.delete(rl);
 		return receiptMapper.toDto(receipt);
+
 	}
 
 	/*
@@ -287,7 +285,8 @@ public class ReceiptServiceImpl implements ReceiptService{
 			if (qty <= 0) continue;
 			if (rl.getStatus() == ReceiptLineStatus.DAMAGED) continue;
 
-			storeMovement(rl, MovementType.INBOUND_RECEIPT, qty, receipt.getId());
+			StockOperation operation = buildStockOperation(rl,MovementType.INBOUND_RECEIPT, qty, receipt.getId());
+			stockService.onReceiptOpration(operation);
 
 			created++;
 		}
@@ -380,20 +379,6 @@ public class ReceiptServiceImpl implements ReceiptService{
 		return -1;
 	}
 
-	void storeMovement(ReceiptLine rl, MovementType type, Integer quantity, Long referenceId) {
-		InventoryMovement m = new InventoryMovement();
-
-		LocalDateTime now = LocalDateTime.now();
-		m.setNationalCode(rl.getNationalCode());
-		m.setQuantity(quantity);
-		m.setType(type);
-		m.setReferenceType("RECEIPT");
-		m.setReferenceId(referenceId);
-		m.setSlot(rl.getPutawaySlot());
-		m.setTimestamp(now);
-		movementRepository.save(m);
-	}
-
 	private Slot resolveAndValidatePutawaySlot(String slotCode, String productNationalCode) {
 
 		Slot slot = slotRepository.findByCode(slotCode)
@@ -442,5 +427,16 @@ public class ReceiptServiceImpl implements ReceiptService{
 	private Receipt checkExistingReceipt(Long receiptId) {
 		return receiptRepository.findById(receiptId)
 				.orElseThrow(() -> new ReceiptNotFoundException("Receipt " + receiptId + " not found"));
+	}
+
+	private StockOperation buildStockOperation(ReceiptLine rLine, MovementType type, Integer quantity, Long referenceId) {
+		StockOperation ope = new StockOperation();
+		ope.setNationalCode(rLine.getNationalCode());
+		ope.setReferenceType("RECEIPT");
+		ope.setReferenceId(referenceId);
+		ope.setType(type);
+		ope.setQuantity(quantity);
+
+		return ope;
 	}
 }

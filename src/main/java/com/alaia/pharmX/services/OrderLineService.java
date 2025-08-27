@@ -11,8 +11,4 @@ public interface OrderLineService {
     OrderLineDto updateQuantity(long orderLineId, int newQuantity);
     OrderLineDto delete(long orderLineId);
 
-	OrderLineDto createForOrderSafety(String orderCode, OrderLineDto lineDto);
-	OrderLineDto updateQuantitySafety(long orderLineId, int newQuantity);
-	OrderLineDto deleteSafety(long orderLineId);
-
 }
