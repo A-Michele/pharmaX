@@ -4,7 +4,7 @@ import java.util.List;
 import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
-import com.alaia.pharmX.dtos.OrderDto;
+import com.alaia.pharmX.dtos.order.OrderDto;
 
 public interface CustomerService {
 

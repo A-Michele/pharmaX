@@ -1,9 +1,10 @@
-package com.alaia.pharmX.repositories;
+package com.alaia.pharmX.repositories.order;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.alaia.pharmX.models.Order;
-import com.alaia.pharmX.models.State;
+
+import com.alaia.pharmX.models.order.Order;
+import com.alaia.pharmX.models.order.State;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 

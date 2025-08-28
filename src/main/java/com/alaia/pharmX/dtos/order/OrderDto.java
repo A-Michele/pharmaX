@@ -1,4 +1,4 @@
-package com.alaia.pharmX.dtos;
+package com.alaia.pharmX.dtos.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import com.alaia.pharmX.models.State;
+import com.alaia.pharmX.models.order.State;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

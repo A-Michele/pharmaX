@@ -9,13 +9,13 @@ import com.alaia.pharmX.exceptions.servicesImpl.CategoryNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.mappers.ProductMapper;
-import com.alaia.pharmX.models.Order;
-import com.alaia.pharmX.models.OrderLine;
 import com.alaia.pharmX.models.Product;
-import com.alaia.pharmX.models.State;
-import com.alaia.pharmX.repositories.OrderLineRepository;
+import com.alaia.pharmX.models.order.Order;
+import com.alaia.pharmX.models.order.OrderLine;
+import com.alaia.pharmX.models.order.State;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.SectionRepository;
+import com.alaia.pharmX.repositories.order.OrderLineRepository;
 import com.alaia.pharmX.services.ProductService;
 
 import org.springframework.transaction.annotation.Transactional;

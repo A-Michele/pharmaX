@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
-import com.alaia.pharmX.dtos.OrderDto;
+import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.services.CustomerService;
 import jakarta.validation.Valid;
 

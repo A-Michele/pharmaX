@@ -1,6 +1,6 @@
-package com.alaia.pharmX.dtos;
+package com.alaia.pharmX.dtos.order;
 
-import com.alaia.pharmX.models.LineOrderType;
+import com.alaia.pharmX.models.order.LineOrderType;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

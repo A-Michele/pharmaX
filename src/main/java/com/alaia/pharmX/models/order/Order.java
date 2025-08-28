@@ -1,4 +1,4 @@
-package com.alaia.pharmX.models;
+package com.alaia.pharmX.models.order;
 
 import java.time.LocalDateTime;
 import java.util.Set;

@@ -1,7 +1,8 @@
-package com.alaia.pharmX.services;
+package com.alaia.pharmX.services.order;
 
 import java.util.List;
-import com.alaia.pharmX.dtos.OrderLineDto;
+
+import com.alaia.pharmX.dtos.order.OrderLineDto;
 
 public interface OrderLineService {
 

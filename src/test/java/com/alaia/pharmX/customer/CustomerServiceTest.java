@@ -24,22 +24,22 @@ import com.alaia.pharmX.dtos.AddressUpdateDto;
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.dtos.ContractUpdateDto;
 import com.alaia.pharmX.dtos.CustomerDto;
-import com.alaia.pharmX.dtos.OrderDto;
+import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteCustomerWithOpenOrdersException;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.StateNotFoundException;
 import com.alaia.pharmX.mappers.ContactMapper;
 import com.alaia.pharmX.mappers.CustomerMapper;
-import com.alaia.pharmX.mappers.OrderMapper;
+import com.alaia.pharmX.mappers.order.OrderMapper;
 import com.alaia.pharmX.models.Contact;
 import com.alaia.pharmX.models.Customer;
-import com.alaia.pharmX.models.Order;
-import com.alaia.pharmX.models.State;
+import com.alaia.pharmX.models.order.Order;
+import com.alaia.pharmX.models.order.State;
 import com.alaia.pharmX.repositories.CustomerRepository;
-import com.alaia.pharmX.repositories.OrderRepository;
+import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.servicesImpl.CustomerServiceImp;
-import com.alaia.pharmX.servicesImpl.OrderServiceImp;
+import com.alaia.pharmX.servicesImpl.order.OrderServiceImp;
 
 @ExtendWith(MockitoExtension.class)
 public class CustomerServiceTest {

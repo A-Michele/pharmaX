@@ -1,4 +1,4 @@
-package com.alaia.pharmX.controllers;
+package com.alaia.pharmX.controllers.order;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.alaia.pharmX.dtos.OrderDto;
-import com.alaia.pharmX.dtos.OrderLineDto;
-import com.alaia.pharmX.services.OrderService;
+
+import com.alaia.pharmX.dtos.order.OrderDto;
+import com.alaia.pharmX.dtos.order.OrderLineDto;
+import com.alaia.pharmX.services.order.OrderService;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

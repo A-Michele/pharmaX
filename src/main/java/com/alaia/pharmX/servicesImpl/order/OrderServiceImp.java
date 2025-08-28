@@ -1,12 +1,13 @@
-package com.alaia.pharmX.servicesImpl;
+package com.alaia.pharmX.servicesImpl.order;
 
 import java.util.HashSet;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
-import com.alaia.pharmX.dtos.OrderDto;
-import com.alaia.pharmX.dtos.OrderLineDto;
+
+import com.alaia.pharmX.dtos.order.OrderDto;
+import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
 import com.alaia.pharmX.dtos.stock.StockOperation;
 import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteOrderWithOpenOrdersException;
@@ -19,19 +20,19 @@ import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.QuantityNotAvailableException;
 import com.alaia.pharmX.exceptions.servicesImpl.StockNotAvailableException;
-import com.alaia.pharmX.mappers.OrderLineMapper;
-import com.alaia.pharmX.mappers.OrderMapper;
+import com.alaia.pharmX.mappers.order.OrderLineMapper;
+import com.alaia.pharmX.mappers.order.OrderMapper;
 import com.alaia.pharmX.models.Customer;
-import com.alaia.pharmX.models.LineOrderType;
-import com.alaia.pharmX.models.Order;
-import com.alaia.pharmX.models.OrderLine;
-import com.alaia.pharmX.models.State;
+import com.alaia.pharmX.models.order.LineOrderType;
+import com.alaia.pharmX.models.order.Order;
+import com.alaia.pharmX.models.order.OrderLine;
+import com.alaia.pharmX.models.order.State;
 import com.alaia.pharmX.models.receiving.MovementType;
 import com.alaia.pharmX.repositories.CustomerRepository;
-import com.alaia.pharmX.repositories.OrderLineRepository;
-import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
-import com.alaia.pharmX.services.OrderService;
+import com.alaia.pharmX.repositories.order.OrderLineRepository;
+import com.alaia.pharmX.repositories.order.OrderRepository;
+import com.alaia.pharmX.services.order.OrderService;
 import com.alaia.pharmX.services.stock.StockService;
 import org.springframework.transaction.annotation.Transactional;
 

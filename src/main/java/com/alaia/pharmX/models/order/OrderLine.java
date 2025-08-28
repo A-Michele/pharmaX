@@ -1,4 +1,4 @@
-package com.alaia.pharmX.models;
+package com.alaia.pharmX.models.order;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;

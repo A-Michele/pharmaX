@@ -16,25 +16,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.alaia.pharmX.dtos.OrderDto;
-import com.alaia.pharmX.dtos.OrderLineDto;
+
+import com.alaia.pharmX.dtos.order.OrderDto;
+import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductOutOfStockException;
-import com.alaia.pharmX.mappers.OrderMapper;
+import com.alaia.pharmX.mappers.order.OrderMapper;
 import com.alaia.pharmX.models.Contact;
 import com.alaia.pharmX.models.Customer;
-import com.alaia.pharmX.models.LineOrderType;
-import com.alaia.pharmX.models.Order;
-import com.alaia.pharmX.models.State;
+import com.alaia.pharmX.models.order.LineOrderType;
+import com.alaia.pharmX.models.order.Order;
+import com.alaia.pharmX.models.order.State;
 import com.alaia.pharmX.models.receiving.MovementType;
 import com.alaia.pharmX.repositories.CustomerRepository;
-import com.alaia.pharmX.repositories.OrderRepository;
 import com.alaia.pharmX.repositories.ProductRepository;
+import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.services.stock.StockService;
-import com.alaia.pharmX.servicesImpl.OrderServiceImp;
+import com.alaia.pharmX.servicesImpl.order.OrderServiceImp;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceCreateOrderTest {

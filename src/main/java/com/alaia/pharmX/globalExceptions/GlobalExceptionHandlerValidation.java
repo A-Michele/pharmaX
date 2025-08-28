@@ -2,12 +2,15 @@ package com.alaia.pharmX.globalExceptions;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import jakarta.validation.ConstraintViolationException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -20,27 +23,48 @@ import org.slf4j.LoggerFactory;
 @Order(1)
 public class GlobalExceptionHandlerValidation extends ResponseEntityExceptionHandler {
 
-	@Override
-	protected ResponseEntity<Object> handleMethodArgumentNotValid(
-	        MethodArgumentNotValidException ex, HttpHeaders headers,
-	        HttpStatusCode status, WebRequest request) {
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandlerValidation.class);
 
-	    // Aggiungi il log per vedere se il metodo viene invocato
-	    Logger logger = LoggerFactory.getLogger(GlobalExceptionHandlerValidation.class);
-	    logger.error("Validation failed: " + ex.getMessage(), ex);
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers,
+            HttpStatusCode status, WebRequest request) {
 
-	    Map<String, Object> responseBody = new HashMap<>();
-	    responseBody.put("timestamp", Instant.now().toString());
-	    responseBody.put("status", status.value());
+        logger.error("Validation failed: " + ex.getMessage(), ex);
 
-	    List<String> errors = ex.getBindingResult()
-	            .getFieldErrors()
-	            .stream()
-	            .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
-	            .toList();
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("timestamp", Instant.now().toString());
 
-	    responseBody.put("errors", errors);
+        responseBody.put("status", status.value());
 
-	    return new ResponseEntity<>(responseBody, headers, status);
-	}
+        List<String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
+                .toList();
+
+        responseBody.put("errors", errors);
+
+        return new ResponseEntity<>(responseBody, headers, status);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleConstraintViolation(
+            ConstraintViolationException ex, WebRequest request) {
+
+        logger.error("Constraint violation: " + ex.getMessage(), ex);
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("timestamp", Instant.now().toString());
+        responseBody.put("status", HttpStatus.BAD_REQUEST.value());
+
+        List<String> errors = ex.getConstraintViolations()
+                .stream()
+                .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                .toList();
+
+        responseBody.put("errors", errors);
+
+        return new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
+    }
 }

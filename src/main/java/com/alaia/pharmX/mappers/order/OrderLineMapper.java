@@ -1,9 +1,10 @@
-package com.alaia.pharmX.mappers;
+package com.alaia.pharmX.mappers.order;
 
 import org.springframework.stereotype.Component;
-import com.alaia.pharmX.dtos.OrderLineDto;
-import com.alaia.pharmX.models.LineOrderType;
-import com.alaia.pharmX.models.OrderLine;
+
+import com.alaia.pharmX.dtos.order.OrderLineDto;
+import com.alaia.pharmX.models.order.LineOrderType;
+import com.alaia.pharmX.models.order.OrderLine;
 
 @Component
 public class OrderLineMapper {

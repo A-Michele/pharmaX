@@ -1,8 +1,9 @@
-package com.alaia.pharmX.repositories;
+package com.alaia.pharmX.repositories.order;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.alaia.pharmX.models.OrderLine;
+
+import com.alaia.pharmX.models.order.OrderLine;
 
 public interface OrderLineRepository extends JpaRepository<OrderLine, Long> {
 
