@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostReceiptResponse {
+public class putAwayReceiptResponse {
 
     private Long receiptId;
     private int movementCount;

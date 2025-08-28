@@ -16,6 +16,7 @@ public class ReceiptDto {
     private String externalRef;
     private String supplierName;
     private LocalDateTime receivedAt;
+    private LocalDateTime lastModification;
     private ReceiptState state;
     private String notes;
     private Set<ReceiptLineDto> lines;

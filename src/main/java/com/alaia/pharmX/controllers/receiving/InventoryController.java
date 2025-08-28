@@ -69,10 +69,4 @@ public class InventoryController {
 		List<StockBySlotDto> stock = inventoryService.getStockBySlot();
 		return new ResponseEntity<>(stock, HttpStatus.OK);
 	}
-
-	@PostMapping("updateQuantity")
-	public ResponseEntity<StockItemDto> updateQuantity(@RequestBody UpdateStockItemDto dto) {
-		StockItemDto stock = inventoryService.updateQuantityProductToInventory(dto);
-		return new ResponseEntity<>(stock, HttpStatus.OK);
-	}
 }

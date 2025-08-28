@@ -11,6 +11,7 @@ import com.alaia.pharmX.dtos.stock.EffectiveQuantityProduct;
 import com.alaia.pharmX.dtos.stock.ReservedQuantityProduct;
 import com.alaia.pharmX.dtos.stock.StockDto;
 import com.alaia.pharmX.dtos.stock.StockOperation;
+import com.alaia.pharmX.exceptions.servicesImpl.ErrorUpdateQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductOutOfStockException;
@@ -190,6 +191,38 @@ public class StockServiceImpl implements StockService{
 	}
 
 
+	@Override
+	public StockDto updateEffectiveQuantity(EffectiveQuantityProduct eqP) {
+		LocalDateTime now = LocalDateTime.now();
+
+		Stock stock = stockRepository.findByNationalCode(eqP.getNationalCode());
+		if (stock == null)
+			throw new ProductOutOfStockException("Product: " + eqP.getNationalCode() + ", is out of stock");
+
+		if(eqP.getEffectiveQuantity() >= 0) {
+			int existingReservedQuantity = stock.getReservedQuantity();
+
+			if(eqP.getEffectiveQuantity() < existingReservedQuantity) throw new ErrorUpdateQuantityException("[" + eqP.getNationalCode() + "] New effective quantity: " + eqP.getEffectiveQuantity() + " < existing reserved quantity: " + stock.getReservedQuantity());
+
+			stock.setEffectiveQuantity(eqP.getEffectiveQuantity());
+			stock.setLastModification(now);
+		}
+		else throw new ErrorUpdateQuantityException("New effective quantity must be postive");
+
+		Stock stockSaved = stockRepository.save(stock);
+
+		InventoryMovement m = new InventoryMovement();
+		m.setNationalCode(eqP.getNationalCode());
+		m.setQuantity(eqP.getEffectiveQuantity());
+		m.setType(MovementType.ADJUSTMENT );
+		m.setReferenceType("STOCK");
+		m.setReferenceId(stockSaved.getId());
+		m.setTimestamp(now);
+		movementRepository.save(m);
+
+		return stockMapper.toDto(stockSaved);
+	}
+
 	//--------HELPER-----
 
 	void storeMovement(StockOperation operation) {
@@ -206,6 +239,7 @@ public class StockServiceImpl implements StockService{
 			allocationMovement.setQuantity(operation.getQuantity());
 
 			allocationMovement.setReferenceType(operation.getReferenceType());
+			allocationMovement.setSlot(operation.getSlot());
 			allocationMovement.setReferenceId(operation.getReferenceId());
 			allocationMovement.setTimestamp(now);
 
@@ -221,6 +255,7 @@ public class StockServiceImpl implements StockService{
 			receiptMovement.setQuantity(operation.getQuantity());
 
 			receiptMovement.setReferenceType(operation.getReferenceType());
+			receiptMovement.setSlot(operation.getSlot());
 			receiptMovement.setReferenceId(operation.getReferenceId());
 			receiptMovement.setTimestamp(now);
 
@@ -242,8 +277,10 @@ public class StockServiceImpl implements StockService{
 			pickingMovementTwo.setQuantity(-operation.getQuantity());
 
 			pickingMovementOne.setReferenceType(operation.getReferenceType());
+			pickingMovementOne.setSlot(operation.getSlot());
 			pickingMovementTwo.setReferenceType(operation.getReferenceType());
 			pickingMovementOne.setReferenceId(operation.getReferenceId());
+			pickingMovementTwo.setSlot(operation.getSlot());
 			pickingMovementTwo.setReferenceId(operation.getReferenceId());
 			pickingMovementOne.setTimestamp(now);
 			pickingMovementTwo.setTimestamp(now);
@@ -262,6 +299,7 @@ public class StockServiceImpl implements StockService{
 			adjustmentMovement.setQuantity(operation.getQuantity());
 
 			adjustmentMovement.setReferenceType(operation.getReferenceType());
+			adjustmentMovement.setSlot(operation.getSlot());
 			adjustmentMovement.setReferenceId(operation.getReferenceId());
 			adjustmentMovement.setTimestamp(now);
 
@@ -278,6 +316,7 @@ public class StockServiceImpl implements StockService{
 			returnMovement.setQuantity(operation.getQuantity());
 
 			returnMovement.setReferenceType(operation.getReferenceType());
+			returnMovement.setSlot(operation.getSlot());
 			returnMovement.setReferenceId(operation.getReferenceId());
 			returnMovement.setTimestamp(now);
 
@@ -285,4 +324,5 @@ public class StockServiceImpl implements StockService{
 			break;
 		}
 	}
+
 }

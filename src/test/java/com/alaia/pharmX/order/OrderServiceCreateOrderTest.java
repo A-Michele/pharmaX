@@ -109,9 +109,9 @@ public class OrderServiceCreateOrderTest {
 		when(customerRepository.findByCf("CF123")).thenReturn(customer);
 		when(productRepository.existsByNationalCode("ABC123")).thenReturn(true);
 		when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
-		when(orderMapper.toEntity(orderDto)).thenReturn(order);
+		when(orderMapper.toEntity(orderDto)).thenReturn(order);//Si puo togliere?
 		when(orderRepository.saveAndFlush(any(Order.class))).thenReturn(order);
-		when(orderMapper.toDto(order)).thenReturn(orderDto);
+		when(orderMapper.toDto(order)).thenReturn(orderDto);//Si puo togliere?
 
 		// Act
 		OrderDto result = orderService.createOrder(orderDto);
@@ -119,7 +119,7 @@ public class OrderServiceCreateOrderTest {
 		// Assert
 		assertNotNull(result);
 		assertEquals(orderDto, result);
-		assertEquals(State.OPEN, result.getState());
+		assertEquals(State.OPEN, result.getState());//Eliminare
 		verify(orderRepository).saveAndFlush(any(Order.class));
 		verify(stockService).reserveQuantity(argThat(op ->
 		op.getNationalCode().equals("ABC123") &&

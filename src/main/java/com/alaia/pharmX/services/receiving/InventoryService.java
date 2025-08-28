@@ -5,7 +5,6 @@ import java.util.List;
 import com.alaia.pharmX.dtos.receiving.MovementDto;
 import com.alaia.pharmX.dtos.receiving.StockBySlotDto;
 import com.alaia.pharmX.dtos.receiving.StockItemDto;
-import com.alaia.pharmX.dtos.receiving.UpdateStockItemDto;
 
 public interface InventoryService {
 
@@ -16,5 +15,4 @@ public interface InventoryService {
 	StockItemDto getStokOfNationalCode(String nationalCode);
 	List<MovementDto> getMovementsByOrder(Long orderId);
 	List<StockBySlotDto> getStockBySlot();
-	StockItemDto updateQuantityProductToInventory(UpdateStockItemDto dto);
 }

@@ -11,6 +11,7 @@ import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteProductWithOpenOrder
 import com.alaia.pharmX.exceptions.servicesImpl.CategoryNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.ErrorUpdateQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidOrderOperationException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidProductConfigurationException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidSlotConfigurationException;
@@ -84,7 +85,8 @@ public class GlobalCustomExceptionHandler {
         InvalidOrderOperationException.class,
         InvalidSlotConfigurationException.class,
         InvalidProductConfigurationException.class,
-        InvalidUpdateQuantityException.class
+        InvalidUpdateQuantityException.class,
+        ErrorUpdateQuantityException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody

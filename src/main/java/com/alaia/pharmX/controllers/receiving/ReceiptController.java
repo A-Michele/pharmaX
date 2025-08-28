@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.alaia.pharmX.dtos.receiving.CreateReceiptLineRequest;
 import com.alaia.pharmX.dtos.receiving.CreateReceiptRequest;
-import com.alaia.pharmX.dtos.receiving.PostReceiptResponse;
 import com.alaia.pharmX.dtos.receiving.ReceiptDto;
 import com.alaia.pharmX.dtos.receiving.SlotDefiniedAtPost;
 import com.alaia.pharmX.dtos.receiving.UpdateReceiptLineRequest;
 import com.alaia.pharmX.dtos.receiving.VerifyReceiptLineRequest;
+import com.alaia.pharmX.dtos.receiving.putAwayReceiptResponse;
 import com.alaia.pharmX.services.receiving.ReceiptService;
 import jakarta.validation.Valid;
 
@@ -73,15 +73,9 @@ public class ReceiptController {
 		return new ResponseEntity<>(receiptDto, HttpStatus.OK);
 	}
 
-	@PostMapping("/{id}/verify/complete")
-    public ResponseEntity<ReceiptDto> completeVerification(@PathVariable("id") Long receiptId) {
-		ReceiptDto receiptDto = receiptService.completeVerification(receiptId);
-		return new ResponseEntity<>(receiptDto, HttpStatus.OK);
-    }
-
-    @PostMapping("/{id}/post")
-    public ResponseEntity<PostReceiptResponse> post(@PathVariable("id") Long receiptId, @RequestBody List<SlotDefiniedAtPost> slotDefinied) {
-    	PostReceiptResponse receipt = receiptService.postReceipt(receiptId, slotDefinied);
+    @PostMapping("/{id}/putaway")
+    public ResponseEntity<putAwayReceiptResponse> putAway(@PathVariable("id") Long receiptId, @RequestBody List<SlotDefiniedAtPost> slotDefinied) {
+    	putAwayReceiptResponse receipt = receiptService.putAwayReceipt(receiptId, slotDefinied);
         return new ResponseEntity<>(receipt, HttpStatus.OK);
     }
 

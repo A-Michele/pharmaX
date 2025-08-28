@@ -1,5 +1,6 @@
 package com.alaia.pharmX.dtos.stock;
 
+import com.alaia.pharmX.models.Slot;
 import com.alaia.pharmX.models.receiving.MovementType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,4 +15,5 @@ public class StockOperation {
 	Long referenceId;
 	MovementType type;
 	int quantity;
+	Slot slot;
 }

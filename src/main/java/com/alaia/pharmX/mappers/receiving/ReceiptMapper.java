@@ -23,6 +23,7 @@ public class ReceiptMapper {
         dto.setExternalRef(r.getExternalRef());
         dto.setSupplierName(r.getSupplierName());
         dto.setReceivedAt(r.getReceivedAt());
+        dto.setLastModification(r.getLastModification());
         dto.setState(r.getState());
 
         if (r.getLines() != null) {
@@ -44,6 +45,7 @@ public class ReceiptMapper {
 		e.setExternalRef(dto.getExternalRef());
 		e.setSupplierName(dto.getSupplierName());
 		e.setReceivedAt(dto.getReceivedAt());
+		e.setLastModification(dto.getLastModification());
 		e.setState(dto.getState());
 
 		if (dto.getLines() != null) {

@@ -3,7 +3,6 @@ package com.alaia.pharmX.models.receiving;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import org.hibernate.annotations.Check;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,9 +21,7 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Check(constraints = "((state = 'DRAFT' AND received_at IS NULL) " +
-        " OR (state IN ('VERIFIED','POSTED') AND received_at IS NOT NULL) " +
-        " OR (state = 'CANCELED'))")
+
 public class Receipt {
 
 	@Id
@@ -37,6 +34,7 @@ public class Receipt {
 
     private String supplierName;
     private LocalDateTime receivedAt;
+    private LocalDateTime lastModification;
 
     @Enumerated(EnumType.STRING)
     private ReceiptState state;

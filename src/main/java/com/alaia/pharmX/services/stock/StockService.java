@@ -24,4 +24,6 @@ public interface StockService {
 	StockDto unReserveQuantityOnDeleteOrCanceled(StockOperation operation);
 	StockDto onReceiptOpration(StockOperation operation);
 
+	StockDto updateEffectiveQuantity(EffectiveQuantityProduct effectiveQuantityProduct);
+
 }

@@ -7,14 +7,12 @@ import org.springframework.stereotype.Service;
 import com.alaia.pharmX.dtos.receiving.MovementDto;
 import com.alaia.pharmX.dtos.receiving.StockBySlotDto;
 import com.alaia.pharmX.dtos.receiving.StockItemDto;
-import com.alaia.pharmX.dtos.receiving.UpdateStockItemDto;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ReceiptNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.StockNotAvailableException;
 import com.alaia.pharmX.mappers.receiving.InventoryMovementMapper;
 import com.alaia.pharmX.models.receiving.InventoryMovement;
-import com.alaia.pharmX.models.receiving.MovementType;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.repositories.receiving.InventoryMovementRepository;
@@ -101,23 +99,4 @@ public class InventoryServiceImpl implements InventoryService {
     public List<StockBySlotDto> getStockBySlot() {
         return movementRepository.sumByProductAndSlot();
     }
-
-	@Override
-	public StockItemDto updateQuantityProductToInventory(UpdateStockItemDto dto) {
-		if(!productRepository.existsByNationalCode(dto.getNationalCode()))
-			throw new ProductNotFoundException("Product not found with national code : " + dto.getNationalCode());
-
-		InventoryMovement m = new InventoryMovement();
-
-		LocalDateTime now = LocalDateTime.now();
-		m.setNationalCode(dto.getNationalCode());
-		m.setQuantity(dto.getQuantity());
-		m.setType(MovementType.ADJUSTMENT);
-		if(dto.getReason() !=null )
-			m.setReferenceType(dto.getReason());
-		m.setTimestamp(now);
-		movementRepository.save(m);
-
-		return movementRepository.findStockDtoByNationalCode(dto.getNationalCode());
-	}
 }
