@@ -18,6 +18,7 @@ import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.repositories.receiving.InventoryMovementRepository;
 import com.alaia.pharmX.repositories.receiving.ReceiptRepository;
 import com.alaia.pharmX.services.receiving.InventoryService;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -39,7 +40,7 @@ public class InventoryServiceImpl implements InventoryService {
 	private ProductRepository productRepository;
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<MovementDto> getMovementsByReceipt(Long receiptId) {
 
 		if(!receiptRepository.existsById(receiptId))
@@ -51,7 +52,7 @@ public class InventoryServiceImpl implements InventoryService {
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<MovementDto> getMovementsByOrder(Long orderId) {
 
 		if(!orderRepository.existsById(orderId))
@@ -63,16 +64,19 @@ public class InventoryServiceImpl implements InventoryService {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<StockItemDto> getStock() {
 		return movementRepository.findStockDto();
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<StockItemDto> getStockAsOf(LocalDateTime asOf) {
 		 return movementRepository.findStockDtoAsOf(asOf);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<MovementDto> getMovementsByNationalCode(String nationalCode){
 		if(!productRepository.existsByNationalCode(nationalCode))
 			throw new ProductNotFoundException("Product not found with national code : " + nationalCode);
@@ -84,6 +88,7 @@ public class InventoryServiceImpl implements InventoryService {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public StockItemDto getStokOfNationalCode(String nationalCode) {
 		if(!productRepository.existsByNationalCode(nationalCode))
 			throw new ProductNotFoundException("Product not found with national code : " + nationalCode);
@@ -95,7 +100,7 @@ public class InventoryServiceImpl implements InventoryService {
 	}
 
 	@Override
-    @Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<StockBySlotDto> getStockBySlot() {
         return movementRepository.sumByProductAndSlot();
     }

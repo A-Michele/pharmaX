@@ -15,6 +15,7 @@ import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
 import com.alaia.pharmX.services.SlotService;
 
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -30,6 +31,7 @@ public class SlotServiceImp implements SlotService{
     private SlotMapper slotMapper;
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SlotDto create(SlotDto dto, Long sectionId) {
 
 		if (slotRepository.existsByCode(dto.getCode())) {
@@ -50,6 +52,7 @@ public class SlotServiceImp implements SlotService{
     }
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SlotDto getById(long id) {
 
 		Slot slot = slotRepository.findById(id)
@@ -66,6 +69,7 @@ public class SlotServiceImp implements SlotService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<SlotDto> getAllSlots() {
 
 		List<Slot> slots = slotRepository.findAll();
@@ -75,7 +79,7 @@ public class SlotServiceImp implements SlotService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SlotDto patchSlot(long id, SlotPatchDto dto) {
 
 		Slot slot = slotRepository.findById(id)
@@ -92,6 +96,7 @@ public class SlotServiceImp implements SlotService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SlotDto delete(long id) {
 
 		Slot slot = slotRepository.findById(id)
@@ -106,6 +111,7 @@ public class SlotServiceImp implements SlotService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SlotDto move(long slotId, long targetSectionId) {
 
 		Section target = sectionRepository.findById(targetSectionId)

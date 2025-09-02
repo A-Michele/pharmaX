@@ -17,6 +17,7 @@ import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.SlotRepository;
 import com.alaia.pharmX.services.SectionService;
 
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -32,6 +33,7 @@ public class SectionServiceImp implements SectionService{
 	private SectionMapper sectionMapper;
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SectionDto create(SectionDto dto) {
 
 		if (sectionRepository.existsByCode(dto.getCode())) {
@@ -57,6 +59,7 @@ public class SectionServiceImp implements SectionService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SectionDto getById(long id) {
 
 		Section section = sectionRepository.findById(id)
@@ -65,6 +68,7 @@ public class SectionServiceImp implements SectionService{
     }
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SectionDto getByCode(String code) {
 
 		Section section = sectionRepository.findByCode(code)
@@ -73,6 +77,7 @@ public class SectionServiceImp implements SectionService{
     }
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<SectionDto> getAllSection() {
 
 		List<Section> sections = sectionRepository.findAll();
@@ -82,7 +87,7 @@ public class SectionServiceImp implements SectionService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SectionDto updateNameAndCategory(long id, SectionUpdateDto dto) {
 
 		Section section = sectionRepository.findById(id)
@@ -95,6 +100,7 @@ public class SectionServiceImp implements SectionService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SectionDto delete(long id) {
 
 		Section section = sectionRepository.findById(id)
@@ -104,7 +110,7 @@ public class SectionServiceImp implements SectionService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SectionDto addExistingSlot(long sectionId, long slotId) {
 
 		Section target = sectionRepository.findById(sectionId)
@@ -122,7 +128,7 @@ public class SectionServiceImp implements SectionService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public SectionDto removeSlot(long sectionId, long slotId) {
 
 		Slot slot = slotRepository.findById(slotId)

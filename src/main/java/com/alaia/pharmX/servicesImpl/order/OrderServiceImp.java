@@ -1,11 +1,13 @@
 package com.alaia.pharmX.servicesImpl.order;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
-
+import com.alaia.pharmX.dtos.order.FilterOrdersToRelease;
 import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
@@ -75,6 +77,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderDto getOrderById(long id) {
 
 		Order order = orderRepository.findById(id)
@@ -84,6 +87,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderDto getOrderByCode(String code) {
 
 		Order order = orderRepository.findByCode(code);
@@ -96,6 +100,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<OrderDto> getAllOrder() {
 
 		return orderRepository.findAll().stream()
@@ -104,7 +109,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderDto addLine(String orderCode, OrderLineDto lineDto) {
 		// Order and product validation
 		validateOrderAndProduct(orderCode, lineDto);
@@ -120,7 +125,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderDto updateLineQuantity(long orderLineId, int newQuantity) {
 		// Line and order validation
 		OrderLine line = validateLineAndOrder(orderLineId, newQuantity);
@@ -143,7 +148,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderDto removeLine(long orderLineId) {
 		// Line and order validation
 		OrderLine line = validateLineAndOrder(orderLineId);
@@ -156,7 +161,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderDto clearLines(String orderCode) {
 		// Order validation
 		Order order = validateOrderForClear(orderCode);
@@ -169,6 +174,7 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderDto deleteOrder(String code) {
 		// Order validation
 		Order order = validateOrder(code);
@@ -180,13 +186,28 @@ public class OrderServiceImp implements OrderService{
 		return saveOrderWithCanceledState(order);
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+	public List<OrderDto> getOrdersByFilter(FilterOrdersToRelease filterOrders){
+		if (filterOrders == null) {
+	        throw new IllegalArgumentException("The filter cannot be empty");
+	    }
+
+		verifiedCf(filterOrders.getCf());
+
+		List<Order> orders = orderRepository.findOrdersByCfOrDateRange(filterOrders);
+	    if (orders == null) {
+	        return Collections.emptyList();
+	    }
+
+	    return orders.stream()
+				.map(orderMapper::toDto)
+				.toList();
+	}
+
 	//------> HELEPERS FOR CREATE ORDER <-------
 
 	private void validateOrder(OrderDto orderDto) {
-
-	    if (orderRepository.existsByCode(orderDto.getCode())) {
-	        throw new OrderAlreadyExistsException("Order already exists with code: " + orderDto.getCode());
-	    }
 
 	    Customer customer = customerRepository.findByCf(orderDto.getCf());
 	    if (customer == null) {
@@ -206,9 +227,28 @@ public class OrderServiceImp implements OrderService{
 	}
 
 	private Order saveOrder(OrderDto orderDto) {
-	    orderDto.setState(State.OPEN);
+		LocalDateTime now = LocalDateTime.now();
+
+		orderDto.setCode(generateOrderCode(orderDto.getCf()));
+
+		if (orderRepository.existsByCode(orderDto.getCode())) {
+	        throw new OrderAlreadyExistsException("Order already exists with code: " + orderDto.getCode());
+	    }
+
+		orderDto.setDate(now);;
+		orderDto.setState(State.OPEN);
 	    Order entity = orderMapper.toEntity(orderDto);
 	    return orderRepository.saveAndFlush(entity);
+	}
+
+	private String generateOrderCode(String cf) {
+	    String prefix = cf.substring(0, 2).toUpperCase();
+	    String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	    StringBuilder rand = new StringBuilder();
+	    for (int i = 0; i < 3; i++) {
+	        rand.append(chars.charAt((int) (Math.random() * chars.length())));
+	    }
+	    return "ORD-" + prefix + "-" + rand;
 	}
 
 	private void reserveProductQuantities(OrderDto orderDto, Long orderId) {
@@ -400,9 +440,9 @@ public class OrderServiceImp implements OrderService{
 	    }
 
 	    State state = order.getState();
-	    if (state != State.OPEN && state != State.PENDING) {
+	    if (state != State.OPEN) {
 	        throw new CannotDeleteOrderWithOpenOrdersException("Cannot delete order with code: " + code +
-	                ". It has already passed to the state SHIPPING. Current state: " + state);
+	                ". Current state: " + state);
 	    }
 
 	    return order;
@@ -422,6 +462,15 @@ public class OrderServiceImp implements OrderService{
 	    Order savedOrder = orderRepository.save(order);
 	    return orderMapper.toDto(savedOrder);
 	}
+
+	// -----> HELPERS GET ALL ORDER BY FILTER <-----
+
+	private Customer verifiedCf(String cf) {
+		Customer customer = customerRepository.findByCf(cf);
+		if(customer == null ) throw new CustomerNotFoundException("Customer: " + cf + " not found ");
+		return customer;
+	}
+
 
 	//------> HELEPERS<-------
 

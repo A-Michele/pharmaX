@@ -4,9 +4,8 @@ import com.alaia.pharmX.dtos.stock.EffectiveQuantityProduct;
 import com.alaia.pharmX.dtos.stock.ReservedQuantityProduct;
 import com.alaia.pharmX.dtos.stock.StockDto;
 import com.alaia.pharmX.dtos.stock.StockOperation;
-
 import java.util.List;
-
+import com.alaia.pharmX.dtos.picking.PickItemCompletionRequest;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
 
 public interface StockService {
@@ -20,7 +19,7 @@ public interface StockService {
 	StockDto createStock(StockDto stockDto);
 
 	StockDto reserveQuantity(StockOperation opreation);
-	StockDto unReserveQuantity(StockOperation opreation);
+	StockDto unReserveQuantity(StockOperation opreation, PickItemCompletionRequest uqPickedItem);
 	StockDto unReserveQuantityOnDeleteOrCanceled(StockOperation operation);
 	StockDto onReceiptOpration(StockOperation operation);
 

@@ -2,6 +2,7 @@ package com.alaia.pharmX.services.order;
 
 import java.util.List;
 
+import com.alaia.pharmX.dtos.order.FilterOrdersToRelease;
 import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
 
@@ -18,4 +19,5 @@ public interface OrderService {
 	OrderDto removeLine(long orderLineId);
 	OrderDto clearLines(String orderCode);
 
+	List<OrderDto> getOrdersByFilter(FilterOrdersToRelease filterOrders);
 }

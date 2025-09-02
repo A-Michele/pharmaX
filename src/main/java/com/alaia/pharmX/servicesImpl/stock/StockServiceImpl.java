@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
-
+import com.alaia.pharmX.dtos.picking.PickItemCompletionRequest;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
 import com.alaia.pharmX.dtos.stock.EffectiveQuantityProduct;
 import com.alaia.pharmX.dtos.stock.ReservedQuantityProduct;
@@ -20,12 +20,12 @@ import com.alaia.pharmX.mappers.stock.StockMapper;
 import com.alaia.pharmX.models.receiving.InventoryMovement;
 import com.alaia.pharmX.models.receiving.MovementType;
 import com.alaia.pharmX.models.receiving.QuantityType;
+import com.alaia.pharmX.models.stock.InfoSlot;
 import com.alaia.pharmX.models.stock.Stock;
 import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.receiving.InventoryMovementRepository;
 import com.alaia.pharmX.repositories.stock.StockRepository;
 import com.alaia.pharmX.services.stock.StockService;
-
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -44,6 +44,7 @@ public class StockServiceImpl implements StockService{
 	private StockMapper stockMapper;
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public EffectiveQuantityProduct getEffectiveQuantity(String nationalCode) {
 		if(!stockRepository.existsByNationalCode(nationalCode)) {
 			throw new ProductOutOfStockException("Product: " + nationalCode + ", is out of stock");
@@ -54,6 +55,7 @@ public class StockServiceImpl implements StockService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ReservedQuantityProduct getReservedQuantity(String nationalCode) {
 		if(!stockRepository.existsByNationalCode(nationalCode)) {
 			throw new ProductOutOfStockException("Product: " + nationalCode + ", is out of stock");
@@ -64,6 +66,7 @@ public class StockServiceImpl implements StockService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public AvailableQuantityProduct getAvailableQuantity(String nationalCode) {
 		if(!stockRepository.existsByNationalCode(nationalCode)) {
 			throw new ProductOutOfStockException("Product: " + nationalCode + ", is out of stock");
@@ -73,7 +76,7 @@ public class StockServiceImpl implements StockService{
 		return new AvailableQuantityProduct(nationalCode, stock.getEffectiveQuantity() - stock.getReservedQuantity());
 	}
 
-	//PER CREAZIONE ORDINI
+	//FOR ORDERS CREATION
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public StockDto reserveQuantity(StockOperation operation) {
@@ -92,7 +95,7 @@ public class StockServiceImpl implements StockService{
 		return stockMapper.toDto(stockSaved);
 	}
 
-	//PER RECEIPT
+	//FOR RECEIPT
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public StockDto onReceiptOpration(StockOperation operation) {
@@ -111,15 +114,18 @@ public class StockServiceImpl implements StockService{
 			stock.setEffectiveQuantity(stock.getEffectiveQuantity() + operation.getQuantity());
 		}
 
+		manageSlotsStock(operation, stock);
+
 		storeMovement(operation);
 
 		Stock stockSaved = stockRepository.save(stock);
 		return stockMapper.toDto(stockSaved);
 	}
 
-	//PER PICKING
+	//FOR PICKING
 	@Override
-	public StockDto unReserveQuantity(StockOperation operation) {
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+	public StockDto unReserveQuantity(StockOperation operation, PickItemCompletionRequest request) {
 		Stock stock = stockRepository.findByNationalCode(operation.getNationalCode());
 		if (stock == null)
 			throw new ProductOutOfStockException("Product: " + operation.getNationalCode() + ", is out of stock");
@@ -130,12 +136,19 @@ public class StockServiceImpl implements StockService{
 			storeMovement(operation);
 		}
 
+		List<InfoSlot> infoSlots = stock.getInfoSlots();
+		for( InfoSlot info : infoSlots) {
+			if(info.getSlotCode().equals(request.getSlotCode()))
+				info.setQuantity(info.getQuantity() - request.getQuantityPicked());
+		}
+
 		Stock stockSaved = stockRepository.save(stock);
 		return stockMapper.toDto(stockSaved);
 	}
 
-	//PER CANCELLAZIONE O DELETE
+	//FOR CANCELLATION OR DELETE
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public StockDto unReserveQuantityOnDeleteOrCanceled(StockOperation operation) {
 		Stock stock = stockRepository.findByNationalCode(operation.getNationalCode());
 		if (stock == null)
@@ -151,6 +164,7 @@ public class StockServiceImpl implements StockService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public StockDto createStock(StockDto stockDto) {
 		if(stockRepository.existsByNationalCode(stockDto.getNationalCode())) {
 			throw new ProductAlreadyExistsException("Product already exists in stock with nationalCode: " + stockDto.getNationalCode());
@@ -184,6 +198,7 @@ public class StockServiceImpl implements StockService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<StockDto> getAllStock() {
 		return stockRepository.findAll().stream()
 				.map(stockMapper::toDto)
@@ -192,6 +207,7 @@ public class StockServiceImpl implements StockService{
 
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public StockDto updateEffectiveQuantity(EffectiveQuantityProduct eqP) {
 		LocalDateTime now = LocalDateTime.now();
 
@@ -324,5 +340,30 @@ public class StockServiceImpl implements StockService{
 			break;
 		}
 	}
+
+	private void manageSlotsStock(StockOperation operation, Stock stock){
+		int index = findSlotIntoList(operation.getSlot().getCode(), stock.getInfoSlots());
+
+		if(index == -1 ) {
+			InfoSlot infoSlot = new InfoSlot(0L, operation.getSlot().getCode(), operation.getQuantity(), stock);
+			stock.getInfoSlots().add(infoSlot);
+		}
+		else
+		{
+			InfoSlot existingInfoSlot = stock.getInfoSlots().get(index);
+			existingInfoSlot.setQuantity(existingInfoSlot.getQuantity() + operation.getQuantity());
+		}
+    }
+
+    private int findSlotIntoList(String slotCode, List<InfoSlot> list) {
+    	int index = 0;
+    	for (InfoSlot info : list) {
+    		if (info.getSlotCode().equals(slotCode)) {
+    			return index;
+    		}
+    		index++;
+    	}
+    	return -1;
+    }
 
 }

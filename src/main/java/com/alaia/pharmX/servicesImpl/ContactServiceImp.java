@@ -4,6 +4,9 @@ package com.alaia.pharmX.servicesImpl;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.alaia.pharmX.dtos.ContactDto;
 import com.alaia.pharmX.mappers.ContactMapper;
 import com.alaia.pharmX.models.Contact;
@@ -20,6 +23,7 @@ public class ContactServiceImp implements ContactService{
 	private ContactRepository contactRepository;
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<ContactDto> getAllContacts() {
 		List<Contact> customers = contactRepository.findAll();
 		return customers.stream()

@@ -7,13 +7,15 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemToPick{
+public class ItemToPick {
 
-	String nationalCode;
-	String sectionCode;
-	String sectionName;
-	String slotCode;
-	int quantity;
-	String pickingSequence;
+	private String orderCode;
+	private String pickListCode;
+	private String pickItemCode;
+	private String serialNumber;
+	private String nameProduct;
+    private String slotsCode;
+    private int quantityToPicked;
+    private String pickingSequence;
 
 }

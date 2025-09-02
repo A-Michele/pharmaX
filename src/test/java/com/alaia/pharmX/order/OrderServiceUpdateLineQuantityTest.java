@@ -191,7 +191,7 @@ public class OrderServiceUpdateLineQuantityTest {
         // Arrange
         long orderLineId = 1L;
         int newQuantity = 7;
-        order.setState(State.PENDING);
+        order.setState(State.RELEASED);
 
         when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
 

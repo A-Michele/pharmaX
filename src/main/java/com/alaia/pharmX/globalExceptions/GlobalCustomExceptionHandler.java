@@ -20,10 +20,14 @@ import com.alaia.pharmX.exceptions.servicesImpl.InvalidUpdateQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.LinesVerifiedException;
 import com.alaia.pharmX.exceptions.servicesImpl.LotNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.NoMatchCategoryException;
+import com.alaia.pharmX.exceptions.servicesImpl.NoPickItemAvailableException;
 import com.alaia.pharmX.exceptions.servicesImpl.NonCompliantQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderAlreadyExistsException;
+import com.alaia.pharmX.exceptions.servicesImpl.OrderAlreadyReleasedException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderLineNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.PickItemNotFound;
+import com.alaia.pharmX.exceptions.servicesImpl.PickListNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductOutOfStockException;
@@ -35,6 +39,7 @@ import com.alaia.pharmX.exceptions.servicesImpl.SectionNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.SlotAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.SlotNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.StateNotFoundException;
+import com.alaia.pharmX.exceptions.servicesImpl.StateNotValidException;
 import com.alaia.pharmX.exceptions.servicesImpl.StockNotAvailableException;
 
 import org.springframework.core.annotation.Order;
@@ -55,7 +60,10 @@ public class GlobalCustomExceptionHandler {
         StateNotFoundException.class,
         ReceiptNotFoundException.class,
         LotNotFoundException.class,
-        ProductOutOfStockException.class
+        ProductOutOfStockException.class,
+        PickListNotFoundException.class,
+        NoPickItemAvailableException.class,
+        PickItemNotFound.class
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
@@ -71,7 +79,8 @@ public class GlobalCustomExceptionHandler {
         SlotAlreadyExistsException.class,
         InvalidStateTransitionException.class,
         LinesVerifiedException.class,
-        NoMatchCategoryException.class
+        NoMatchCategoryException.class,
+        OrderAlreadyReleasedException.class
     })
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
@@ -86,7 +95,8 @@ public class GlobalCustomExceptionHandler {
         InvalidSlotConfigurationException.class,
         InvalidProductConfigurationException.class,
         InvalidUpdateQuantityException.class,
-        ErrorUpdateQuantityException.class
+        ErrorUpdateQuantityException.class,
+        StateNotValidException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody

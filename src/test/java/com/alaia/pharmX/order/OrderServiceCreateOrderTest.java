@@ -105,7 +105,6 @@ public class OrderServiceCreateOrderTest {
 	@Test
 	void createOrder_Success() {
 		// Arrange
-		when(orderRepository.existsByCode("ORD001")).thenReturn(false);
 		when(customerRepository.findByCf("CF123")).thenReturn(customer);
 		when(productRepository.existsByNationalCode("ABC123")).thenReturn(true);
 		when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
@@ -132,23 +131,8 @@ public class OrderServiceCreateOrderTest {
 	}
 
 	@Test
-	void createOrder_OrderAlreadyExists_ThrowsException() {
-		// Arrange
-		when(orderRepository.existsByCode("ORD001")).thenReturn(true);
-
-		// Act & Assert
-		assertThrows(OrderAlreadyExistsException.class, () ->
-		orderService.createOrder(orderDto));
-		verify(customerRepository, never()).findByCf(any());
-		verify(productRepository, never()).existsByNationalCode(any());
-		verify(stockService, never()).reserveQuantity(any());
-		verify(orderRepository, never()).saveAndFlush(any());
-	}
-
-	@Test
 	void createOrder_CustomerNotFound_ThrowsException() {
 		// Arrange
-		when(orderRepository.existsByCode("ORD001")).thenReturn(false);
 		when(customerRepository.findByCf("CF123")).thenReturn(null);
 
 		// Act & Assert
@@ -162,7 +146,6 @@ public class OrderServiceCreateOrderTest {
 	@Test
 	void createOrder_ProductNotFound_ThrowsException() {
 		// Arrange
-		when(orderRepository.existsByCode("ORD001")).thenReturn(false);
 		when(customerRepository.findByCf("CF123")).thenReturn(customer);
 		when(productRepository.existsByNationalCode("ABC123")).thenReturn(false);
 
@@ -176,7 +159,6 @@ public class OrderServiceCreateOrderTest {
 	@Test
     void createOrder_ProductOutOfStock_ThrowsException() {
         // Arrange
-        when(orderRepository.existsByCode("ORD001")).thenReturn(false);
         when(customerRepository.findByCf("CF123")).thenReturn(customer);
         when(productRepository.existsByNationalCode("ABC123")).thenReturn(true);
         when(stockService.getAvailableQuantity("ABC123")).thenThrow(new ProductOutOfStockException("Product out of stock"));

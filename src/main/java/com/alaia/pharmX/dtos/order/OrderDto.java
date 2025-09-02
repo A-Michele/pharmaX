@@ -20,7 +20,6 @@ public class OrderDto {
 
     private long id;
 
-	@NotBlank
     private String code;
 
     private State state;

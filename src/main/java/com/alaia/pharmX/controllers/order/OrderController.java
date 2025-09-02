@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alaia.pharmX.dtos.order.FilterOrdersToRelease;
 import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.services.order.OrderService;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -83,4 +83,11 @@ public class OrderController {
 		OrderDto orderDto = orderService.deleteOrder(code);
 		return new ResponseEntity<>(orderDto, HttpStatus.OK);
     }
+
+	@GetMapping("/by-filter")
+	public ResponseEntity<List<OrderDto>> getOrdersByFilter(@RequestBody FilterOrdersToRelease filterOrders) {
+		List<OrderDto> orderDtos = orderService.getOrdersByFilter(filterOrders);
+		return new ResponseEntity<>(orderDtos, HttpStatus.OK);
+	}
+
 }

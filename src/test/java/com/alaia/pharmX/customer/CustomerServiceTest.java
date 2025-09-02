@@ -306,10 +306,10 @@ public class CustomerServiceTest {
 	    Customer existing = new Customer();
 	    existing.setCf(cf);
 
-	    Order o1 = new Order(); o1.setId(1L); o1.setCf(cf); o1.setState(State.PENDING);
+	    Order o1 = new Order(); o1.setId(1L); o1.setCf(cf); o1.setState(State.RELEASED);
 	    Order o2 = new Order(); o2.setId(2L); o2.setCf(cf); o2.setState(State.SHIPPING);
 
-	    OrderDto d1 = new OrderDto(); d1.setId(1L); d1.setCf(cf); d1.setState(State.PENDING);
+	    OrderDto d1 = new OrderDto(); d1.setId(1L); d1.setCf(cf); d1.setState(State.RELEASED);
 	    OrderDto d2 = new OrderDto(); d2.setId(2L); d2.setCf(cf); d2.setState(State.SHIPPING);
 
 	    when(customerRepository.findByCf(cf)).thenReturn(existing);
@@ -372,28 +372,28 @@ public class CustomerServiceTest {
 	    String cf = "RSSMRA85M01H501Z";
 	    Customer existing = new Customer(); existing.setCf(cf);
 
-	    Order o1 = new Order(); o1.setId(1L); o1.setCf(cf); o1.setState(State.PENDING);
-	    Order o2 = new Order(); o2.setId(2L); o2.setCf(cf); o2.setState(State.PENDING);
+	    Order o1 = new Order(); o1.setId(1L); o1.setCf(cf); o1.setState(State.RELEASED);
+	    Order o2 = new Order(); o2.setId(2L); o2.setCf(cf); o2.setState(State.RELEASED);
 
-	    OrderDto d1 = new OrderDto(); d1.setId(1L); d1.setCf(cf); d1.setState(State.PENDING);
-	    OrderDto d2 = new OrderDto(); d2.setId(2L); d2.setCf(cf); d2.setState(State.PENDING);
+	    OrderDto d1 = new OrderDto(); d1.setId(1L); d1.setCf(cf); d1.setState(State.RELEASED);
+	    OrderDto d2 = new OrderDto(); d2.setId(2L); d2.setCf(cf); d2.setState(State.RELEASED);
 
 	    when(customerRepository.findByCf(cf)).thenReturn(existing);
-	    when(orderRepository.findByCfAndState(cf, State.PENDING)).thenReturn(List.of(o1, o2));
+	    when(orderRepository.findByCfAndState(cf, State.RELEASED)).thenReturn(List.of(o1, o2));
 	    when(orderMapper.toDto(o1)).thenReturn(d1);
 	    when(orderMapper.toDto(o2)).thenReturn(d2);
 
 	    // Act
-	    List<OrderDto> result = customerService.getOrdersByCFAndType(cf, "pending"); // minuscolo
+	    List<OrderDto> result = customerService.getOrdersByCFAndType(cf, "released"); // minuscolo
 
 	    // Assert
 	    assertNotNull(result);
 	    assertEquals(2, result.size());
-	    assertEquals(State.PENDING, result.get(0).getState());
+	    assertEquals(State.RELEASED, result.get(0).getState());
 
 	    // Verify
 	    verify(customerRepository).findByCf(cf);
-	    verify(orderRepository).findByCfAndState(cf, State.PENDING);
+	    verify(orderRepository).findByCfAndState(cf, State.RELEASED);
 	    verify(orderMapper).toDto(o1);
 	    verify(orderMapper).toDto(o2);
 	    verifyNoMoreInteractions(customerRepository, orderRepository, orderMapper);
@@ -487,7 +487,7 @@ public class CustomerServiceTest {
 		Order pending = new Order();
 		pending.setId(20L);
 		pending.setCf(cf);
-		pending.setState(State.PENDING); // stato “aperto”
+		pending.setState(State.RELEASED); // stato “aperto”
 		pending.setCode("PEND-20");
 
 		Order shipping = new Order();

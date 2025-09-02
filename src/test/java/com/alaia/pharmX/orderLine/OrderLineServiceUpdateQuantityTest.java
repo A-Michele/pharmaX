@@ -182,7 +182,7 @@ public class OrderLineServiceUpdateQuantityTest {
     void updateQuantity_OrderNotOpen_ThrowsException() {
         // Arrange
         long orderLineId = 1L;
-        order.setState(State.PENDING);
+        order.setState(State.RELEASED);
         when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
 
         // Act & Assert

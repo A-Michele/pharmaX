@@ -41,7 +41,7 @@ public class ReceiptMapper {
 		if (dto == null) return null;
 
 		Receipt e = new Receipt();
-		if (dto.getId() != null) e.setId(dto.getId()); // entity usa long
+		if (dto.getId() != null) e.setId(dto.getId());
 		e.setExternalRef(dto.getExternalRef());
 		e.setSupplierName(dto.getSupplierName());
 		e.setReceivedAt(dto.getReceivedAt());

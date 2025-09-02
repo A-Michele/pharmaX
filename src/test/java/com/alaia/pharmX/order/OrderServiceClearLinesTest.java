@@ -144,7 +144,7 @@ public class OrderServiceClearLinesTest {
 	void clearLines_OrderNotOpen_ThrowsException() {
 		// Arrange
 		String orderCode = "ORD001";
-		order.setState(State.PENDING);
+		order.setState(State.RELEASED);
 		when(orderRepository.findByCode(orderCode)).thenReturn(order);
 
 		// Act & Assert

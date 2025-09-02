@@ -8,18 +8,10 @@ public enum State {
 	 */
 	OPEN,
 
-	/* Ordine creato ma non ancora evaso :
-	 * - L’utente ha appena confermato l’ordine
-	 * - Il pagamento non è stato ancora processato (se richiesto)
-     * - Nessuna attività logistica avviata
-	 */
-    PENDING,
 
-    /* In fase di spedizione/consegna :
-     * - Il magazzino ha prelevato e imballato i prodotti
-	 * - È stato creato un tracking di spedizione
-	 * - L’ordine è fisicamente in transito
-     */
+    RELEASED,
+
+    PICKING,
     SHIPPING,
 
     /* Completato con successo:
@@ -35,14 +27,4 @@ public enum State {
 	 * - Nessuna spedizione in corso
      */
     CANCELED;
-
-	//To check if a state change is valid
-    public boolean canTransitionTo(State next) {
-        return switch (this) {
-            case OPEN -> next == PENDING || next == CANCELED;
-            case PENDING -> next == SHIPPING || next == CANCELED;
-            case SHIPPING -> next == COMPLETED || next == CANCELED;
-            case COMPLETED, CANCELED -> false;
-        };
-    }
 }

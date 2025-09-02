@@ -5,6 +5,8 @@ import java.util.Set;
 import com.alaia.pharmX.models.Slot;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,6 +34,8 @@ public class ReceiptLine {
 	private String nationalCode;
     private Integer qtyExpected;
     private Integer qtyReceived;
+
+    @Enumerated(EnumType.STRING)
     private ReceiptLineStatus status;
     private String reason;
 

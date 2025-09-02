@@ -23,6 +23,7 @@ import com.alaia.pharmX.repositories.CustomerRepository;
 import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.services.CustomerService;
 
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -43,8 +44,8 @@ public class CustomerServiceImp implements CustomerService{
 	@Autowired
     private OrderMapper orderMapper;
 
-	@Transactional
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto saveCustomer(CustomerDto customerDto) {
 
 		if(customerRepository.existsByCf(customerDto.getCf())) {
@@ -58,6 +59,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto getCustomerById(long id) {
 
 		Customer customer = customerRepository.findById(id).orElseThrow(
@@ -67,6 +69,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<CustomerDto> getAllCustomers() {
 
 		List<Customer> customers = customerRepository.findAll();
@@ -75,8 +78,8 @@ public class CustomerServiceImp implements CustomerService{
 				.toList();
 	}
 
-	@Transactional
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto updateCustomer(CustomerDto customerDto) {
 
 		Customer existingCustomer = customerRepository.findByCf(customerDto.getCf());
@@ -109,8 +112,8 @@ public class CustomerServiceImp implements CustomerService{
 		return customerMapper.toDto(updatedCustomer);
 	}
 
-	@Transactional
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto deleteCustomer(String cf) {
 
 	    Customer customer = customerRepository.findByCf(cf);
@@ -124,6 +127,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto getCustomerByCF(String cf) {
 
 		Customer customer = customerRepository.findByCf(cf);
@@ -134,6 +138,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto getCustomerByParam(Long id, String cf) {
 
 		if(id != null) return this.getCustomerById(id);
@@ -142,6 +147,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto patchContractToCustomerByCf(String cf, ContractUpdateDto customerUpdateDto) {
 
 	    Boolean responseFlagEmail = customerUpdateDto.getDeleteMail();
@@ -174,6 +180,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto patchAddressToCustomerByCf(String cf, AddressUpdateDto addressDto) {
 
 		Boolean responseDeleteShippingAddress = addressDto.getDeleteShippingAddress();
@@ -205,6 +212,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto getCustomerByEmail(String email) {
 
 		if( email == null) throw new IllegalArgumentException("Email non può essere null");
@@ -217,6 +225,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<OrderDto> getOrdersByCF(String cf) {
 
 		Customer existingCustomer = customerRepository.findByCf(cf);
@@ -231,6 +240,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<OrderDto> getOrdersByCFAndType(String cf, String type) {
 
 	    Customer existingCustomer = customerRepository.findByCf(cf);
@@ -253,7 +263,7 @@ public class CustomerServiceImp implements CustomerService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public CustomerDto deleteCustomerSafely(String cf) {
 
 		Customer customer = customerRepository.findByCf(cf);

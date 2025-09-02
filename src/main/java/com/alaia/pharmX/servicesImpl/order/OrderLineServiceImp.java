@@ -26,6 +26,7 @@ import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.services.order.OrderLineService;
 import com.alaia.pharmX.services.stock.StockService;
 
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -47,7 +48,7 @@ public class OrderLineServiceImp implements OrderLineService{
 	private StockService stockService;
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderLineDto createForOrder(String orderCode, OrderLineDto lineDto) {
 	    // Validation
 	    Order order = validateOrderAndProduct(orderCode, lineDto);
@@ -60,6 +61,7 @@ public class OrderLineServiceImp implements OrderLineService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public OrderLineDto getById(long id) {
 
         OrderLine line = orderLineRepository.findById(id)
@@ -69,6 +71,7 @@ public class OrderLineServiceImp implements OrderLineService{
     }
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<OrderLineDto> getByOrderCode(String orderCode) {
 
 		return orderLineRepository.findByOrder_Code(orderCode)
@@ -78,7 +81,7 @@ public class OrderLineServiceImp implements OrderLineService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderLineDto updateQuantity(long orderLineId, int newQuantity) {
 	    // Validation
 	    OrderLine line = validateOrderLineAndQuantity(orderLineId, newQuantity);
@@ -91,7 +94,7 @@ public class OrderLineServiceImp implements OrderLineService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public OrderLineDto delete(long orderLineId) {
 		// Validation
 		OrderLine line = validateOrderLineAndOrder(orderLineId);

@@ -202,7 +202,7 @@ class OrderServiceAddLineTest {
 	void addLine_OrderNotOpen_ThrowsException() {
 		// Arrange
 		String orderCode = "ORD001";
-		order.setState(State.PENDING);
+		order.setState(State.RELEASED);
 		when(productRepository.existsByNationalCode("ABC123")).thenReturn(true);
 		when(orderRepository.findByCode(orderCode)).thenReturn(order);
 

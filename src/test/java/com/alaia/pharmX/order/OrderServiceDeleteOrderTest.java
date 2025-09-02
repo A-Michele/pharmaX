@@ -125,7 +125,7 @@ public class OrderServiceDeleteOrderTest {
 	void deleteOrder_WithLinesPendingState_Success() {
 		// Arrange
 		String orderCode = "ORD001";
-		order.setState(State.PENDING);
+		order.setState(State.OPEN);
 		when(orderRepository.findByCode(orderCode)).thenReturn(order);
 		when(orderLineMapper.toDto(orderLine)).thenReturn(orderLineDto);
 		when(orderRepository.save(any(Order.class))).thenReturn(order);

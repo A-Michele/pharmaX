@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.alaia.pharmX.dtos.receiving.CreateLotRequest;
 import com.alaia.pharmX.dtos.receiving.CreateReceiptLineRequest;
 import com.alaia.pharmX.dtos.receiving.CreateReceiptRequest;
@@ -47,7 +46,7 @@ import com.alaia.pharmX.repositories.receiving.ReceiptLineRepository;
 import com.alaia.pharmX.repositories.receiving.ReceiptRepository;
 import com.alaia.pharmX.services.receiving.ReceiptService;
 import com.alaia.pharmX.services.stock.StockService;
-
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -78,7 +77,7 @@ public class ReceiptServiceImpl implements ReceiptService{
 	private StockService stockService;
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ReceiptDto createDraft(CreateReceiptRequest request) {
 	    Receipt receipt = initializeReceipt(request);
 	    addLinesToReceipt(receipt, request.getLines());
@@ -86,7 +85,7 @@ public class ReceiptServiceImpl implements ReceiptService{
 	}
 
 	@Override
-    @Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ReceiptDto addLine(Long receiptId, CreateReceiptLineRequest line) {
         Receipt receipt = validateReceiptAndState(receiptId, ReceiptState.DRAFT);
         Optional<ReceiptLine> existingLine = receiptLineRepository.findLineByNationalCodeAndReceipt(line.getNationalCode(), receipt);
@@ -102,67 +101,76 @@ public class ReceiptServiceImpl implements ReceiptService{
     }
 
 	@Override
-    @Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ReceiptDto updateLine(Long receiptId, Long lineId, UpdateReceiptLineRequest line) {
         Receipt receipt = validateReceiptAndState(receiptId, ReceiptState.DRAFT);
         ReceiptLine receiptLine = findLine(receipt, lineId);
         updateReceiptLine(receiptLine, line);
+
         return saveAndMapReceipt(receipt);
     }
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ReceiptDto deleteLineToReceipt(Long receiptId, Long lineId) {
         Receipt receipt = validateReceiptAndState(receiptId, ReceiptState.DRAFT);
         ReceiptLine receiptLine = findLine(receipt, lineId);
         receipt.getLines().remove(receiptLine);
+
         updateReceiptLastModification(receipt);
         receiptLineRepository.delete(receiptLine);
         return receiptMapper.toDto(receipt);
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ReceiptDto verifyLine(Long receiptId, Long lineId, VerifyReceiptLineRequest request) {
 		Receipt receipt = validateReceiptAndState(receiptId, ReceiptState.DRAFT, ReceiptState.VERIFIED);
 		ReceiptLine receiptLine = findLine(receipt, lineId);
 		updateReceiptLineWithVerification(receiptLine, request);
 		assignPutawaySlotIfProvided(receiptLine, request.getPutwaySlotCode());
 		manageLotsForReceiptLine(receiptLine, request);
+
 		updateReceiptStateIfVerified(receipt);
 		receiptLineRepository.saveAndFlush(receiptLine);
 		return receiptMapper.toDto(receipt);
 	}
 
 	@Override
-    @Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public putAwayReceiptResponse putAwayReceipt(Long receiptId, List<SlotDefiniedAtPost> listSlotAtPost) {
         Receipt receipt = validateReceiptAndState(receiptId, ReceiptState.VERIFIED);
         assignSlotsForPost(receipt, listSlotAtPost);
         validateAllLinesHaveSlots(receipt);
+
         int createdMovements = createStockOperationsForReceipt(receipt);
+
         receipt.setState(ReceiptState.PUTAWAY);
         updateReceiptLastModification(receipt);
         return buildPutAwayReceiptResponse(receiptId, createdMovements, LocalDateTime.now());
     }
 
 	@Override
-    @Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ReceiptDto cancel(Long receiptId) {
         Receipt receipt = checkExistingReceipt(receiptId);
         if (receipt.getState() == ReceiptState.PUTAWAY) {
             throw new InvalidStateTransitionException("Cannot cancel a POSTED receipt");
         }
         receipt.setState(ReceiptState.CANCELED);
+
         return saveAndMapReceipt(receipt);
     }
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ReceiptDto getReceiptById(Long receiptId) {
         Receipt receipt = checkExistingReceipt(receiptId);
         return receiptMapper.toDto(receipt);
     }
 
-    @Override
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<ReceiptDto> listReceipt() {
         return receiptRepository.findAll().stream()
                 .map(receiptMapper::toDto)

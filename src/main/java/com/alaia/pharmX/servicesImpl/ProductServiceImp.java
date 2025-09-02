@@ -18,6 +18,7 @@ import com.alaia.pharmX.repositories.SectionRepository;
 import com.alaia.pharmX.repositories.order.OrderLineRepository;
 import com.alaia.pharmX.services.ProductService;
 
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -36,7 +37,7 @@ public class ProductServiceImp implements ProductService{
 	private OrderLineRepository orderLineRepository;
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ProductDto saveProduct(ProductDto productDto) {
 
 		if(productRepository.existsByNationalCode(productDto.getNationalCode())) {
@@ -54,6 +55,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ProductDto getProductById(long id) {
 
 		Product product = productRepository.findById(id).orElseThrow(
@@ -62,6 +64,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<ProductDto> getAllProducts() {
 
 		List<Product> product = productRepository.findAll();
@@ -71,6 +74,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ProductDto updateProduct(ProductDto productDto) {
 
 		Product existingProduct = productRepository.findByNationalCode(productDto.getNationalCode());
@@ -86,6 +90,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ProductDto deleteProduct(String nationalCode) {
 
 		Product product = productRepository.findByNationalCode(nationalCode);
@@ -98,6 +103,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ProductDto getProductByNationalCode(String nationalCode) {
 
 		Product product = productRepository.findByNationalCode(nationalCode);
@@ -106,6 +112,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ProductDto getProductByParam(Long id, String nationalCode) {
 
 		if(id != null) return this.getProductById(id);
@@ -114,7 +121,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public ProductDto patchSupplierNameToProductByNationalCode(String nationalCode, String supplierName) {
 
 		if (nationalCode == null || nationalCode.isBlank()) {
@@ -136,7 +143,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<ProductDto> saveProducts(List<ProductDto> productDtos) {
 
 		if (productDtos == null || productDtos.isEmpty()) {
@@ -166,7 +173,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<ProductDto> deleteAllProducts() {
 
 		List<Product> allProducts = productRepository.findAll();
@@ -183,6 +190,7 @@ public class ProductServiceImp implements ProductService{
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public List<ProductDto> getProductByCategory(String category) {
 
 		List<Product> products = productRepository.findByCategory(category);
