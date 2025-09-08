@@ -25,10 +25,11 @@ import com.alaia.pharmX.repositories.order.OrderLineRepository;
 import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.services.order.OrderLineService;
 import com.alaia.pharmX.services.stock.StockService;
-
+import lombok.AllArgsConstructor;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@AllArgsConstructor
 @Service
 public class OrderLineServiceImp implements OrderLineService{
 
@@ -104,6 +105,15 @@ public class OrderLineServiceImp implements OrderLineService{
 
 		// Deletion
 		return deleteOrderLine(line);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+	public OrderLineDto getByLineNumber(String lineNumber) {
+		OrderLine orderLine = orderLineRepository.findByLineNumber(lineNumber);
+		if(orderLine == null )
+			throw new OrderLineNotFoundException("OrderLine not found with lineNumber: " + lineNumber);
+		return orderLineMapper.toDto(orderLine);
 	}
 
 	//------> HELEPERS FOR CREATE ORDER WITH ORDER LINE <-------

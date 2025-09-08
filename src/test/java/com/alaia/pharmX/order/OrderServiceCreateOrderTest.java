@@ -1,34 +1,19 @@
 package com.alaia.pharmX.order;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.LocalDateTime;
-import java.util.Set;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.TestPropertySource;
 import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
-import com.alaia.pharmX.exceptions.servicesImpl.OrderAlreadyExistsException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductNotFoundException;
-import com.alaia.pharmX.exceptions.servicesImpl.ProductOutOfStockException;
+import com.alaia.pharmX.exceptions.servicesImpl.StockNotAvailableException;
 import com.alaia.pharmX.mappers.order.OrderMapper;
-import com.alaia.pharmX.models.Contact;
-import com.alaia.pharmX.models.Customer;
 import com.alaia.pharmX.models.order.LineOrderType;
-import com.alaia.pharmX.models.order.Order;
 import com.alaia.pharmX.models.order.State;
 import com.alaia.pharmX.models.receiving.MovementType;
 import com.alaia.pharmX.repositories.CustomerRepository;
@@ -36,137 +21,119 @@ import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.services.stock.StockService;
 import com.alaia.pharmX.servicesImpl.order.OrderServiceImp;
+import org.mockito.Mock;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import com.alaia.pharmX.mappers.order.OrderLineMapper;
+import com.alaia.pharmX.repositories.order.OrderLineRepository;
 
-@ExtendWith(MockitoExtension.class)
-public class OrderServiceCreateOrderTest {
+@DataJpaTest
+@TestPropertySource(locations = "classpath:application-test.properties")
+@EntityScan("com.alaia.pharmX.models")
+@EnableJpaRepositories(basePackages = "com.alaia.pharmX.repositories")
+class OrderServiceCreateOrderTest {
 
-	@Mock
-	private OrderRepository orderRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
-	@Mock
-	private CustomerRepository customerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
-	@Mock
-	private ProductRepository productRepository;
+    @Autowired
+    private ProductRepository productRepository;
 
-	@Mock
-	private StockService stockService;
+    @Autowired
+    private OrderLineRepository orderLineRepository;
 
-	@Mock
-	private OrderMapper orderMapper;
+    @Mock
+    private StockService stockService;
 
-	@InjectMocks
-	private OrderServiceImp orderService;
+    private OrderServiceImp orderService;
+    private OrderLineMapper orderLineMapper;
+    private OrderMapper orderMapper;
+    private AvailableQuantityProduct availableQuantity;
 
-	private OrderDto orderDto;
-	private Order order;
-	private OrderLineDto orderLineDto;
-	private Customer customer;
-	private AvailableQuantityProduct availableQuantity;
+    @BeforeEach
+    void setUp() {
+    	availableQuantity = new AvailableQuantityProduct();
+        orderLineMapper = new OrderLineMapper();
+        orderMapper = new OrderMapper(orderLineMapper);
+        orderService = new OrderServiceImp(productRepository, stockService, customerRepository, orderMapper, orderLineMapper, orderRepository, orderLineRepository);
+    }
 
-	@BeforeEach
-	void setUp() {
-
-		customer = new Customer();
-		customer.setId(1L);
-		customer.setCf("CF123");
-		customer.setName("Test Customer");
-		customer.setShippingAddress("Via Test 123");
-		customer.setBillingAddress("Via Test 456");
-
-		customer.setContacts(new Contact(1L, "test@example.com", "1234567890"));
-
-		orderLineDto = new OrderLineDto();
-		orderLineDto.setId(1L);
-		orderLineDto.setNationalCode("ABC123");
-		orderLineDto.setQuantity(5);
-		orderLineDto.setLineNumber("ORDLINE-123456");
-		orderLineDto.setType(LineOrderType.OPEN);
-
-		orderDto = new OrderDto();
-		orderDto.setId(0L);
-		orderDto.setCode("ORD001");
-		orderDto.setState(null);
-		orderDto.setCf("CF123");
-		orderDto.setDate(LocalDateTime.now());
-		orderDto.setOrderLines(Set.of(orderLineDto));
-
-		order = new Order();
-		order.setId(1L);
-		order.setCode("ORD001");
-		order.setState(State.OPEN);
-		order.setCf("CF123");
-		order.setDate(LocalDateTime.now());
-		order.setOrderLines(Set.of());
-
-		availableQuantity = new AvailableQuantityProduct("ABC123", 10);
-	}
-
-	@Test
-	void createOrder_Success() {
-		// Arrange
-		when(customerRepository.findByCf("CF123")).thenReturn(customer);
-		when(productRepository.existsByNationalCode("ABC123")).thenReturn(true);
-		when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
-		when(orderMapper.toEntity(orderDto)).thenReturn(order);//Si puo togliere?
-		when(orderRepository.saveAndFlush(any(Order.class))).thenReturn(order);
-		when(orderMapper.toDto(order)).thenReturn(orderDto);//Si puo togliere?
-
-		// Act
-		OrderDto result = orderService.createOrder(orderDto);
-
-		// Assert
-		assertNotNull(result);
-		assertEquals(orderDto, result);
-		assertEquals(State.OPEN, result.getState());//Eliminare
-		verify(orderRepository).saveAndFlush(any(Order.class));
-		verify(stockService).reserveQuantity(argThat(op ->
-		op.getNationalCode().equals("ABC123") &&
-		op.getReferenceType().equals("ORDER") &&
-		op.getReferenceId() == 1L &&
-		op.getType() == MovementType.ORDER_ALLOCATION &&
-		op.getQuantity() == 5
-				));
-		verify(orderMapper).toDto(order);
-	}
-
-	@Test
-	void createOrder_CustomerNotFound_ThrowsException() {
-		// Arrange
-		when(customerRepository.findByCf("CF123")).thenReturn(null);
-
-		// Act & Assert
-		assertThrows(CustomerNotFoundException.class, () ->
-		orderService.createOrder(orderDto));
-		verify(productRepository, never()).existsByNationalCode(any());
-		verify(stockService, never()).reserveQuantity(any());
-		verify(orderRepository, never()).saveAndFlush(any());
-	}
-
-	@Test
-	void createOrder_ProductNotFound_ThrowsException() {
-		// Arrange
-		when(customerRepository.findByCf("CF123")).thenReturn(customer);
-		when(productRepository.existsByNationalCode("ABC123")).thenReturn(false);
-
-		// Act & Assert
-		assertThrows(ProductNotFoundException.class, () ->
-		orderService.createOrder(orderDto));
-		verify(stockService, never()).reserveQuantity(any());
-		verify(orderRepository, never()).saveAndFlush(any());
-	}
-
-	@Test
-    void createOrder_ProductOutOfStock_ThrowsException() {
+    @Test
+    void createOrder_Success() {
         // Arrange
-        when(customerRepository.findByCf("CF123")).thenReturn(customer);
-        when(productRepository.existsByNationalCode("ABC123")).thenReturn(true);
-        when(stockService.getAvailableQuantity("ABC123")).thenThrow(new ProductOutOfStockException("Product out of stock"));
+    	Set<OrderLineDto> lines= new HashSet<>();
+    	OrderDto orderRequest = new OrderDto(0L, null , State.OPEN, "CF123" , LocalDateTime.now(), lines);
+    	OrderLineDto orderLineRequest = new OrderLineDto(0L, "ABC123", 5, null, LineOrderType.OPEN);
+    	orderRequest.getOrderLines().add(orderLineRequest);
+
+    	availableQuantity.setNationalCode("ABC123");
+    	availableQuantity.setAvailableQuantity(10);
+
+    	when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
+
+        // Act
+        OrderDto result = orderService.createOrder(orderRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.getCode().startsWith("ORD-CF-"), "Order code should start with ORD-CF-");
+        assertEquals("CF123", result.getCf());
+
+        verify(stockService).getAvailableQuantity("ABC123");
+        verify(stockService).reserveQuantity(argThat(op ->
+                op.getNationalCode().equals("ABC123") &&
+                op.getReferenceType().equals("ORDER") &&
+                op.getReferenceId() > 0 &&
+                op.getType() == MovementType.ORDER_ALLOCATION &&
+                op.getQuantity() == 5
+        ));
+        verifyNoMoreInteractions(stockService);
+    }
+
+    @Test
+    void createOrder_CustomerNotFound_ThrowsException() {
+        // Arrange
+    	String orderCode = "ORD-CF-INVALID-CF";
+    	OrderDto request = orderService.getOrderByCode(orderCode);
 
         // Act & Assert
-        assertThrows(ProductOutOfStockException.class, () ->
-                orderService.createOrder(orderDto));
-        verify(stockService, never()).reserveQuantity(any());
-        verify(orderRepository, never()).saveAndFlush(any());
-	}
+        assertThrows(CustomerNotFoundException.class, () ->
+                orderService.createOrder(request));
+        verify(stockService, never()).getAvailableQuantity(any());
+    }
+
+    @Test
+    void createOrder_ProductNotFound_ThrowsException() {
+    	String orderCode ="ORD-NC-INVALID";
+    	OrderDto request = orderService.getOrderByCode(orderCode);
+
+        // Act & Assert
+        assertThrows(ProductNotFoundException.class, () ->
+                orderService.createOrder(request));
+        verifyNoMoreInteractions(stockService);
+    }
+
+    @Test
+    void createOrder_StockNotAvailable_ThrowsException() {
+        // Arrange
+    	String orderCode ="ORD-CF-123";
+    	OrderDto request = orderService.getOrderByCode(orderCode);
+
+    	availableQuantity.setNationalCode("ABC123");
+    	availableQuantity.setAvailableQuantity(10);
+
+    	when(stockService.getAvailableQuantity("ABC123")).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(StockNotAvailableException.class, () ->
+                orderService.createOrder(request));
+
+    }
 }

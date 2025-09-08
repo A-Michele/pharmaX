@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.dtos.picking.PickListDto;
-import com.alaia.pharmX.exceptions.servicesImpl.OrderAlreadyReleasedException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
 import com.alaia.pharmX.mappers.order.OrderMapper;
 import com.alaia.pharmX.mappers.releasing.PickListMapper;
@@ -82,10 +81,6 @@ public class ReleaseServiceImp implements ReleaseService{
         Map<String, List<OrderDto>> map = new HashMap<>();
         for (String code : orders) {
             Order order = orderRepository.findByCode(code);
-            if (order == null) {
-                throw new OrderNotFoundException("Order: " + code + " not found");
-            }
-
             order.setState(State.RELEASED);
             OrderDto orderDto = orderMapper.toDto(order);
             String cf = order.getCf();
@@ -169,10 +164,14 @@ public class ReleaseServiceImp implements ReleaseService{
     }
 
     private void checkExistingReleaseOrder(List<String> orders) {
-        for (String s : orders) {
+
+    	for (String s : orders) {
             Order order = orderRepository.findByCode(s);
-            if (order != null && order.getState().equals(State.RELEASED)) {
-                throw new OrderAlreadyReleasedException("Order already released");
+            if (order != null && !order.getState().equals(State.OPEN)) {
+                throw new IllegalArgumentException("Order must be in OPEN state");
+            }
+            if (order == null) {
+                throw new OrderNotFoundException("Order: " + s + " not found");
             }
         }
     }

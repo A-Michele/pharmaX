@@ -5,10 +5,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
-
 import com.alaia.pharmX.dtos.picking.ItemToPick;
 import com.alaia.pharmX.dtos.picking.PickItemDto;
 import com.alaia.pharmX.dtos.picking.PickListDto;
@@ -71,8 +71,17 @@ public class PickingServiceImpl implements PickingService{
         PickItem pickItem = validatePickItem(request);
 
         setPickItemValues(pickItem, request);
+
+        if (verifiedAllItemArePicked(pickItem.getPickList())) {
+            pickItem.getPickList().setState(PickListStatus.PICKED);
+        }
+
         OrderLine orderLine = setOrderLineValues(pickItem);
         Order order = setOrderValues(pickItem);
+
+        if (verifiedAllOrderLineArePicked(order.getOrderLines())) {
+            order.setState(State.COMPLETED);
+        }
         StockOperation operation = buildStockOperation(pickItem.getNationalCode(), request, pickItem.getPickList().getId());
 
         stockService.unReserveQuantity(operation, request);
@@ -115,6 +124,15 @@ public class PickingServiceImpl implements PickingService{
 		return list.getItems();
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+	public List<String> getOrderReleased() {
+		return orderRepository.findAll().stream()
+				.filter( o -> o.getState().equals(State.RELEASED))
+				.map(Order::getCode)
+				.toList();
+	}
+
 	//----> HELEPERS FOR UPDATE QUANTITY PICKED <-----
 
 	private PickItem validatePickItem(PickItemCompletionRequest uqPickedItem) {
@@ -144,19 +162,13 @@ public class PickingServiceImpl implements PickingService{
     }
 
     private void setPickItemValues(PickItem pickItem, PickItemCompletionRequest uqPickedItem) {
-        if (pickItem.getQuantityPicked() == 0) {
-            pickItem.setQuantityPicked(uqPickedItem.getQuantityPicked());
-        }
 
-        if (uqPickedItem.getReason() != null) {
-            pickItem.setReason(uqPickedItem.getReason());
-        }
+    	pickItem.setQuantityPicked(uqPickedItem.getQuantityPicked());
+
+        pickItem.setReason(uqPickedItem.getReason());
 
         pickItem.setState(PickListItemStatus.PICKED);
 
-        if (verifiedAllItemArePicked(pickItem.getPickList())) {
-            pickItem.getPickList().setState(PickListStatus.PICKED);
-        }
     }
 
     private OrderLine setOrderLineValues(PickItem pickItem) {
@@ -195,6 +207,15 @@ public class PickingServiceImpl implements PickingService{
     private boolean verifiedAllItemArePicked(PickList pickList) {
         for (PickItem item : pickList.getItems()) {
             if (!item.getState().equals(PickListItemStatus.PICKED)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean verifiedAllOrderLineArePicked(Set<OrderLine> list) {
+        for (OrderLine item : list) {
+            if (!item.getType().equals(LineOrderType.PICKED)) {
                 return false;
             }
         }
@@ -251,10 +272,10 @@ public class PickingServiceImpl implements PickingService{
     	dto.setSerialNumber(firstItem.getNationalCode());
     	dto.setNameProduct(firstItem.getNameProduct());
     	dto.setSlotsCode(firstItem.getSlotsCode());
-    	dto.setQuantityToPicked(firstItem.getQuantityToPick());
+    	dto.setQuantityToPick(firstItem.getQuantityToPick());
     	dto.setOrderCode(firstItem.getCodeOrder());
     	dto.setPickingSequence(firstItem.getPickingSequence());
+    	dto.setNationalCode(firstItem.getNationalCode());
     	return dto;
     }
-
 }

@@ -9,6 +9,7 @@ public interface OrderLineService {
 	OrderLineDto createForOrder(String orderCode, OrderLineDto lineDto);
     OrderLineDto getById(long id);
     List<OrderLineDto> getByOrderCode(String orderCode);
+    OrderLineDto getByLineNumber(String lineNumber);
     OrderLineDto updateQuantity(long orderLineId, int newQuantity);
     OrderLineDto delete(long orderLineId);
 

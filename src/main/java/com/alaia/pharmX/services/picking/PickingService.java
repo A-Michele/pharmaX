@@ -9,8 +9,9 @@ import com.alaia.pharmX.dtos.picking.PickItemCompletionRequest;
 
 public interface PickingService {
 
-	PickItemDto	completePickItem( PickItemCompletionRequest request );
+	List<String> getOrderReleased();
 	ItemToPick getNextItemToPick(List<String> pickListCodes);
+	PickItemDto	completePickItem( PickItemCompletionRequest request );
 	PickItemDto getPickItemDtoByCode(String pickItemCode);
 	PickListDto getPickListDtoByCode(String pickListCode);
 	List<PickItemDto> getPickItemsByPickListCode(String pickListCode);

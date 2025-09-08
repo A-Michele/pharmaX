@@ -12,6 +12,8 @@ import com.alaia.pharmX.models.order.LineOrderType;
 import com.alaia.pharmX.models.order.Order;
 import com.alaia.pharmX.models.order.OrderLine;
 
+import lombok.AllArgsConstructor;
+@AllArgsConstructor
 @Component
 public class OrderMapper {
 

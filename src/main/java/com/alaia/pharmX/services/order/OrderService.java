@@ -11,6 +11,7 @@ public interface OrderService {
     OrderDto getOrderById(long id);
     OrderDto getOrderByCode(String code);
     List<OrderDto> getAllOrder();
+    List<OrderDto> getOrdersByFilter(FilterOrdersToRelease filterOrders);
 
     OrderDto deleteOrder(String code);
     OrderDto createOrder(OrderDto orderDto);
@@ -18,6 +19,4 @@ public interface OrderService {
 	OrderDto updateLineQuantity(long orderLineId, int newQuantity);
 	OrderDto removeLine(long orderLineId);
 	OrderDto clearLines(String orderCode);
-
-	List<OrderDto> getOrdersByFilter(FilterOrdersToRelease filterOrders);
 }

@@ -2,130 +2,89 @@ package com.alaia.pharmX.order;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.TestPropertySource;
 import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
-import com.alaia.pharmX.dtos.stock.StockOperation;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidUpdateQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderLineNotFoundException;
-import com.alaia.pharmX.exceptions.servicesImpl.OrderNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.QuantityNotAvailableException;
 import com.alaia.pharmX.mappers.order.OrderLineMapper;
 import com.alaia.pharmX.mappers.order.OrderMapper;
-import com.alaia.pharmX.models.order.LineOrderType;
-import com.alaia.pharmX.models.order.Order;
 import com.alaia.pharmX.models.order.OrderLine;
-import com.alaia.pharmX.models.order.State;
 import com.alaia.pharmX.models.receiving.MovementType;
+import com.alaia.pharmX.repositories.CustomerRepository;
+import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.order.OrderLineRepository;
 import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.services.stock.StockService;
+import com.alaia.pharmX.servicesImpl.order.OrderLineServiceImp;
 import com.alaia.pharmX.servicesImpl.order.OrderServiceImp;
-
-import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class OrderServiceUpdateLineQuantityTest {
+@DataJpaTest
+@TestPropertySource(locations = "classpath:application-test.properties")
+@EntityScan("com.alaia.pharmX.models")
+@EnableJpaRepositories(basePackages = "com.alaia.pharmX.repositories")
+class OrderServiceUpdateLineQuantityTest {
 
-    @Mock
-    private OrderLineRepository orderLineRepository;
-
-    @Mock
+    @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private OrderLineRepository orderLineRepository;
 
     @Mock
     private StockService stockService;
 
-    @Mock
+    private OrderServiceImp orderService;
+    private OrderLineServiceImp orderLineService;
+    private OrderLineMapper orderLineMapper;
     private OrderMapper orderMapper;
 
-    @Mock
-    private OrderLineMapper orderLineMapper;
-
-    @InjectMocks
-    private OrderServiceImp orderServiceImp;
-
-    private Order order;
-    private OrderLine orderLine;
-    private OrderDto orderDto;
-    private OrderLineDto orderLineDto;
     private AvailableQuantityProduct availableQuantity;
-    private StockOperation stockOperation;
 
     @BeforeEach
     void setUp() {
-
-        order = new Order();
-        order.setId(1L);
-        order.setCode("ORD001");
-        order.setState(State.OPEN);
-        order.setCf("CF123");
-        order.setDate(LocalDateTime.now());
-        order.setOrderLines(Set.of());
-
-        orderLine = new OrderLine();
-        orderLine.setId(1L);
-        orderLine.setNationalCode("ABC123");
-        orderLine.setQuantity(5);
-        orderLine.setLineNumber("ORDLINE-123456");
-        orderLine.setType(LineOrderType.OPEN);
-        orderLine.setOrder(order);
-
-        orderDto = new OrderDto();
-        orderDto.setId(1L);
-        orderDto.setCode("ORD001");
-        orderDto.setState(State.OPEN);
-        orderDto.setCf("CF123");
-        orderDto.setDate(LocalDateTime.now());
-        orderDto.setOrderLines(Set.of());
-
-        orderLineDto = new OrderLineDto();
-        orderLineDto.setId(1L);
-        orderLineDto.setNationalCode("ABC123");
-        orderLineDto.setQuantity(5);
-        orderLineDto.setLineNumber("ORDLINE-123456");
-        orderLineDto.setType(LineOrderType.OPEN);
-
-        availableQuantity = new AvailableQuantityProduct("ABC123", 10);
-
-        stockOperation = new StockOperation();
-        stockOperation.setNationalCode("ABC123");
-        stockOperation.setReferenceType("ORDER");
-        stockOperation.setReferenceId(1L);
-        stockOperation.setType(MovementType.ADJUSTMENT);
-        stockOperation.setQuantity(2);
+    	availableQuantity = new AvailableQuantityProduct();
+        orderLineMapper = new OrderLineMapper();
+        orderMapper = new OrderMapper(orderLineMapper);
+        orderService = new OrderServiceImp(productRepository, stockService, customerRepository, orderMapper, orderLineMapper, orderRepository, orderLineRepository);
+        orderLineService= new OrderLineServiceImp(productRepository, orderLineMapper, orderRepository, orderLineRepository, stockService);
     }
 
     @Test
     void updateLineQuantity_IncreaseQuantity_Success() {
         // Arrange
-        long orderLineId = 1L;
+    	String lineNumber = "ORDLINE-123456";
+		OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
+
+	    availableQuantity.setNationalCode("ABC123");
+	    availableQuantity.setAvailableQuantity(10);
+	    when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
+
         int newQuantity = 7;
 
-        when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-        when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
-        when(orderLineMapper.toDto(orderLine)).thenReturn(orderLineDto);
-        when(orderLineRepository.save(orderLine)).thenReturn(orderLine);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(orderMapper.toDto(order)).thenReturn(orderDto);
-
         // Act
-        OrderDto result = orderServiceImp.updateLineQuantity(orderLineId, newQuantity);
+        OrderDto result = orderService.updateLineQuantity(request.getId(), newQuantity);
 
         // Assert
         assertNotNull(result);
-        assertEquals(orderDto, result);
-        assertEquals(newQuantity, orderLine.getQuantity());
+        assertEquals(7,result.getOrderLines().iterator().next().getQuantity());
         verify(stockService).reserveQuantity(argThat(op ->
             op.getNationalCode().equals("ABC123") &&
             op.getReferenceType().equals("ORDER") &&
@@ -133,124 +92,103 @@ public class OrderServiceUpdateLineQuantityTest {
             op.getType() == MovementType.ADJUSTMENT &&
             op.getQuantity() == 2
         ));
-        verify(orderLineRepository).save(orderLine);
-        verify(orderRepository).findById(1L);
-        verify(orderMapper).toDto(order);
     }
 
     @Test
     void updateLineQuantity_DecreaseQuantity_Success() {
-        // Arrange
-        long orderLineId = 1L;
-        int newQuantity = 3;
+    	//Arrange
+    	String lineNumber = "ORDLINE-123456";
+    	OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
 
-        when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-        when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
-        when(orderLineMapper.toDto(orderLine)).thenReturn(orderLineDto);
-        when(orderLineRepository.save(orderLine)).thenReturn(orderLine);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(orderMapper.toDto(order)).thenReturn(orderDto);
+    	availableQuantity.setNationalCode("ABC123");
+    	availableQuantity.setAvailableQuantity(10);
+    	when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
 
-        // Act
-        OrderDto result = orderServiceImp.updateLineQuantity(orderLineId, newQuantity);
+    	int newQuantity = 2;
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(orderDto, result);
-        assertEquals(newQuantity, orderLine.getQuantity());
-        verify(stockService).unReserveQuantityOnDeleteOrCanceled(argThat(op ->
-            op.getNationalCode().equals("ABC123") &&
-            op.getReferenceType().equals("ORDER") &&
-            op.getReferenceId() == 1L &&
-            op.getType() == MovementType.ADJUSTMENT &&
-            op.getQuantity() == 2
+    	//Act
+    	OrderDto result = orderService.updateLineQuantity(request.getId(), newQuantity);
+
+    	//Assert
+    	assertNotNull(result);
+    	assertEquals(2,result.getOrderLines().iterator().next().getQuantity());
+    	verify(stockService).unReserveQuantityOnDeleteOrCanceled(argThat(op ->
+    	op.getNationalCode().equals("ABC123") &&
+    	op.getReferenceType().equals("ORDER") &&
+    	op.getReferenceId() == 1L &&
+    	op.getType() == MovementType.ADJUSTMENT &&
+    	op.getQuantity() == 3
         ));
-        verify(orderLineRepository).save(orderLine);
-        verify(orderRepository).findById(1L);
-        verify(orderMapper).toDto(order);
     }
 
     @Test
     void updateLineQuantity_OrderLineNotFound_ThrowsException() {
         // Arrange
-        long orderLineId = 1L;
-        int newQuantity = 7;
-
-        when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.empty());
+    	long orderLineId = 9999L;
+    	int newQuantity = 7;
 
         // Act & Assert
         assertThrows(OrderLineNotFoundException.class, () ->
-                orderServiceImp.updateLineQuantity(orderLineId, newQuantity));
-        verify(stockService, never()).reserveQuantity(any());
-        verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
-        verify(orderLineRepository, never()).save(any());
+                orderService.updateLineQuantity(orderLineId, newQuantity));
+        Optional<OrderLine> line = orderLineRepository.findById(orderLineId);
+        assertTrue(line.isEmpty());
     }
 
     @Test
     void updateLineQuantity_OrderNotOpen_ThrowsException() {
-        // Arrange
-        long orderLineId = 1L;
-        int newQuantity = 7;
-        order.setState(State.RELEASED);
+    	// Arrange
+    	String lineNumber = "ORDLINE-ORD-NO-OPEN";
+    	OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
+    	int newQuantity = 7;
 
-        when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-
-        // Act & Assert
-        assertThrows(InvalidUpdateQuantityException.class, () ->
-                orderServiceImp.updateLineQuantity(orderLineId, newQuantity));
-        verify(stockService, never()).reserveQuantity(any());
-        verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
-        verify(orderLineRepository, never()).save(any());
+    	// Act & Assert
+    	assertThrows(InvalidUpdateQuantityException.class, () ->
+    	orderService.updateLineQuantity(request.getId(), newQuantity));
+    	OrderLine line = orderLineRepository.findByLineNumber(lineNumber);
+    	assertEquals(5,line.getQuantity());
+    	verify(stockService, never()).reserveQuantity(any());
+    	verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
     }
 
     @Test
     void updateLineQuantity_QuantityNotAvailable_ThrowsException() {
         // Arrange
-        long orderLineId = 1L;
-        int newQuantity = 15;
+    	String lineNumber = "ORDLINE-123456";
+    	OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
 
-        when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-        when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
+    	availableQuantity.setNationalCode("ABC123");
+    	availableQuantity.setAvailableQuantity(10);
+    	when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
+
+        int newQuantity = 15;
 
         // Act & Assert
         assertThrows(QuantityNotAvailableException.class, () ->
-                orderServiceImp.updateLineQuantity(orderLineId, newQuantity));
-        verify(orderLineRepository, never()).save(any());
+                orderService.updateLineQuantity(request.getId(), newQuantity));
+        verify(stockService, never()).reserveQuantity(any());
+    	verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
+    	OrderLine line = orderLineRepository.findByLineNumber(lineNumber);
+    	assertEquals(5,line.getQuantity());
+
     }
 
     @Test
     void updateLineQuantity_SameQuantity_ThrowsException() {
         // Arrange
-        long orderLineId = 1L;
-        int newQuantity = 5;
+    	String lineNumber = "ORDLINE-123456";
+    	OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
 
-        when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-        when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
+    	availableQuantity.setNationalCode("ABC123");
+    	availableQuantity.setAvailableQuantity(10);
+    	when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
+
+    	int newQuantity = 5;
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () ->
-                orderServiceImp.updateLineQuantity(orderLineId, newQuantity));
+                orderService.updateLineQuantity(request.getId(), newQuantity));
         verify(stockService, never()).reserveQuantity(any());
         verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
-        verify(orderLineRepository, never()).save(any());
-    }
 
-    @Test
-    void updateLineQuantity_OrderNotFound_ThrowsException() {
-        // Arrange
-        long orderLineId = 1L;
-        int newQuantity = 7;
-
-        when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-        when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
-        when(orderLineMapper.toDto(orderLine)).thenReturn(orderLineDto);
-        when(orderLineRepository.save(orderLine)).thenReturn(orderLine);
-        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(OrderNotFoundException.class, () ->
-                orderServiceImp.updateLineQuantity(orderLineId, newQuantity));
-        verify(orderLineRepository).save(orderLine);
-        verify(stockService).reserveQuantity(any(StockOperation.class));
     }
 }

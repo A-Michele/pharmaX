@@ -42,6 +42,12 @@ public class OrderLineController {
     	return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
     }
 
+    @GetMapping("/by-lineNumber")
+    public ResponseEntity<OrderLineDto> getByLineNumber(@RequestParam String lineNumber) {
+    	OrderLineDto orderLineDto = orderLineService.getByLineNumber(lineNumber);
+    	return new ResponseEntity<>(orderLineDto, HttpStatus.OK);
+    }
+
     @GetMapping("/by-order/{code}")
     public ResponseEntity<List<OrderLineDto>> getByOrderCode(@PathVariable @NotBlank String code) {
     	List<OrderLineDto> orderLineDto = orderLineService.getByOrderCode(code);

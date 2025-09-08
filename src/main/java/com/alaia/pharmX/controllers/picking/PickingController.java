@@ -53,6 +53,9 @@ public class PickingController {
 		return new ResponseEntity<>(items, HttpStatus.OK);
 	}
 
-
-
+	@GetMapping("/orders-released")
+    public ResponseEntity<List<String>> getRelesedOrders() {
+		List<String> list = pickingService.getOrderReleased();
+		return new ResponseEntity<>(list, HttpStatus.OK);
+    }
 }

@@ -15,7 +15,7 @@ public class ItemToPick {
 	private String serialNumber;
 	private String nameProduct;
     private String slotsCode;
-    private int quantityToPicked;
+    private int quantityToPick;
     private String pickingSequence;
-
+    private String nationalCode;
 }

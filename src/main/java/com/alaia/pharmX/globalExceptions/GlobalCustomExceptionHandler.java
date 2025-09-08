@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteCustomerWithOpenOrdersException;
-import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteOrderWithOpenOrdersException;
+import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteOrderWithNoStateOpenException;
 import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteProductWithOpenOrdersException;
 import com.alaia.pharmX.exceptions.servicesImpl.CategoryNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerAlreadyExistsException;
@@ -110,7 +110,7 @@ public class GlobalCustomExceptionHandler {
         NonCompliantQuantityException.class,
         CannotDeleteCustomerWithOpenOrdersException.class,
         CannotDeleteProductWithOpenOrdersException.class,
-        CannotDeleteOrderWithOpenOrdersException.class,
+        CannotDeleteOrderWithNoStateOpenException.class,
         ReceiptLineNotFoundToReceiptException.class
     })
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)

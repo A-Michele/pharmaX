@@ -12,7 +12,7 @@ import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
 import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
 import com.alaia.pharmX.dtos.stock.StockOperation;
-import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteOrderWithOpenOrdersException;
+import com.alaia.pharmX.exceptions.servicesImpl.CannotDeleteOrderWithNoStateOpenException;
 import com.alaia.pharmX.exceptions.servicesImpl.CustomerNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidOrderOperationException;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidUpdateQuantityException;
@@ -36,8 +36,10 @@ import com.alaia.pharmX.repositories.order.OrderLineRepository;
 import com.alaia.pharmX.repositories.order.OrderRepository;
 import com.alaia.pharmX.services.order.OrderService;
 import com.alaia.pharmX.services.stock.StockService;
+import lombok.AllArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
+@AllArgsConstructor
 @Service
 public class OrderServiceImp implements OrderService{
 
@@ -235,7 +237,7 @@ public class OrderServiceImp implements OrderService{
 	        throw new OrderAlreadyExistsException("Order already exists with code: " + orderDto.getCode());
 	    }
 
-		orderDto.setDate(now);;
+		orderDto.setDate(now);
 		orderDto.setState(State.OPEN);
 	    Order entity = orderMapper.toEntity(orderDto);
 	    return orderRepository.saveAndFlush(entity);
@@ -373,7 +375,7 @@ public class OrderServiceImp implements OrderService{
 	    }
 
 	    if (order.getState() != State.OPEN) {
-	        throw new InvalidUpdateQuantityException("Can only update if the order is in status: OPEN. Current order state: " + order.getState());
+	        throw new InvalidOrderOperationException("Can only update if the order is in status: OPEN. Current order state: " + order.getState());
 	    }
 
 	    return line;
@@ -441,7 +443,7 @@ public class OrderServiceImp implements OrderService{
 
 	    State state = order.getState();
 	    if (state != State.OPEN) {
-	        throw new CannotDeleteOrderWithOpenOrdersException("Cannot delete order with code: " + code +
+	        throw new CannotDeleteOrderWithNoStateOpenException("Cannot delete order with code: " + code +
 	                ". Current state: " + state);
 	    }
 
@@ -459,6 +461,8 @@ public class OrderServiceImp implements OrderService{
 
 	private OrderDto saveOrderWithCanceledState(Order order) {
 	    order.setState(State.CANCELED);
+	    for(OrderLine line : order.getOrderLines())
+	    	line.setType(LineOrderType.CANCELED);
 	    Order savedOrder = orderRepository.save(order);
 	    return orderMapper.toDto(savedOrder);
 	}
@@ -470,7 +474,6 @@ public class OrderServiceImp implements OrderService{
 		if(customer == null ) throw new CustomerNotFoundException("Customer: " + cf + " not found ");
 		return customer;
 	}
-
 
 	//------> HELEPERS<-------
 

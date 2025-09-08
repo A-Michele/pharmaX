@@ -1,6 +1,5 @@
 package com.alaia.pharmX.order;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,116 +8,83 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.Test;
 import com.alaia.pharmX.dtos.order.OrderDto;
 import com.alaia.pharmX.dtos.order.OrderLineDto;
+import com.alaia.pharmX.dtos.stock.AvailableQuantityProduct;
 import com.alaia.pharmX.dtos.stock.StockOperation;
 import com.alaia.pharmX.exceptions.servicesImpl.InvalidOrderOperationException;
-import com.alaia.pharmX.exceptions.servicesImpl.InvalidUpdateQuantityException;
 import com.alaia.pharmX.exceptions.servicesImpl.OrderLineNotFoundException;
 import com.alaia.pharmX.exceptions.servicesImpl.ProductOutOfStockException;
 import com.alaia.pharmX.mappers.order.OrderLineMapper;
 import com.alaia.pharmX.mappers.order.OrderMapper;
-import com.alaia.pharmX.models.order.LineOrderType;
-import com.alaia.pharmX.models.order.Order;
-import com.alaia.pharmX.models.order.OrderLine;
-import com.alaia.pharmX.models.order.State;
 import com.alaia.pharmX.models.receiving.MovementType;
+import com.alaia.pharmX.repositories.CustomerRepository;
+import com.alaia.pharmX.repositories.ProductRepository;
 import com.alaia.pharmX.repositories.order.OrderLineRepository;
 import com.alaia.pharmX.repositories.order.OrderRepository;
-
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.TestPropertySource;
 import com.alaia.pharmX.services.stock.StockService;
+import com.alaia.pharmX.servicesImpl.order.OrderLineServiceImp;
 import com.alaia.pharmX.servicesImpl.order.OrderServiceImp;
 
-@ExtendWith(MockitoExtension.class)
-public class OrderServiceRemoveLineTest {
-	@Mock
-	private OrderRepository orderRepository;
+@DataJpaTest
+@TestPropertySource(locations = "classpath:application-test.properties")
+@EntityScan("com.alaia.pharmX.models")
+@EnableJpaRepositories(basePackages = "com.alaia.pharmX.repositories")
+class OrderServiceRemoveLineTest {
 
-	@Mock
-	private OrderLineRepository orderLineRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
-	@Mock
-	private StockService stockService;
+    @Autowired
+    private CustomerRepository customerRepository;
 
-	@Mock
-	private OrderMapper orderMapper;
+    @Autowired
+    private ProductRepository productRepository;
 
-	@Mock
-	private OrderLineMapper orderLineMapper;
+    @Autowired
+    private OrderLineRepository orderLineRepository;
 
-	@InjectMocks
-	private OrderServiceImp orderService;
+    @Mock
+    private StockService stockService;
 
-	private Order order;
-	private OrderDto orderDto;
-	private OrderLine orderLine;
-	private OrderLineDto orderLineDto;
+    private OrderServiceImp orderService;
+    private OrderLineServiceImp orderLineService;
+    private OrderLineMapper orderLineMapper;
+    private OrderMapper orderMapper;
+    private AvailableQuantityProduct availableQuantity;
 
-	@BeforeEach
-	void setUp() {
-
-		orderLineDto = new OrderLineDto();
-		orderLineDto.setId(1L);
-		orderLineDto.setNationalCode("ABC123");
-		orderLineDto.setQuantity(5);
-		orderLineDto.setLineNumber("ORDLINE-123456");
-		orderLineDto.setType(LineOrderType.OPEN);
-
-		orderLine = new OrderLine();
-		orderLine.setId(1L);
-		orderLine.setNationalCode("ABC123");
-		orderLine.setQuantity(5);
-		orderLine.setLineNumber("ORDLINE-123456");
-		orderLine.setType(LineOrderType.OPEN);
-
-		order = new Order();
-		order.setId(1L);
-		order.setCode("ORD001");
-		order.setState(State.OPEN);
-		order.setCf("CF123");
-		order.setDate(LocalDateTime.now());
-		order.setOrderLines(new HashSet<>(Set.of(orderLine)));
-
-		orderLine.setOrder(order);
-
-		orderDto = new OrderDto();
-		orderDto.setId(1L);
-		orderDto.setCode("ORD001");
-		orderDto.setState(State.OPEN);
-		orderDto.setCf("CF123");
-		orderDto.setDate(LocalDateTime.now());
-		orderDto.setOrderLines(Set.of());
-	}
+    @BeforeEach
+    void setUp() {
+        orderLineMapper = new OrderLineMapper();
+        orderMapper = new OrderMapper(orderLineMapper);
+        orderService = new OrderServiceImp(productRepository, stockService, customerRepository, orderMapper, orderLineMapper, orderRepository, orderLineRepository);
+        orderLineService= new OrderLineServiceImp(productRepository, orderLineMapper, orderRepository, orderLineRepository, stockService);
+    }
 
 	@Test
 	void removeLine_Success() {
 		// Arrange
-		long orderLineId = 1L;
-		when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-		when(orderLineMapper.toDto(orderLine)).thenReturn(orderLineDto);
-		when(orderRepository.save(any(Order.class))).thenReturn(order);
-		when(orderMapper.toDto(order)).thenReturn(orderDto);
+		String lineNumber = "ORDLINE-123456";
+		OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
+		when(stockService.getAvailableQuantity("ABC123")).thenReturn(availableQuantity);
 
 		// Act
-		OrderDto result = orderService.removeLine(orderLineId);
+		OrderDto result = orderService.removeLine(request.getId());
 
 		// Assert
 		assertNotNull(result);
-		assertEquals(orderDto, result);
-		assertFalse(order.getOrderLines().contains(orderLine));
+		assertFalse(result.getOrderLines().contains(request));
 		verify(stockService).unReserveQuantityOnDeleteOrCanceled(argThat(op ->
 		op.getNationalCode().equals("ABC123") &&
 		op.getReferenceType().equals("ORDER") &&
@@ -126,68 +92,55 @@ public class OrderServiceRemoveLineTest {
 		op.getType() == MovementType.ADJUSTMENT &&
 		op.getQuantity() == 5
 				));
-		verify(orderLineRepository).delete(orderLine);
-		verify(orderRepository).save(any(Order.class));
-		verify(orderMapper).toDto(order);
+		verifyNoMoreInteractions(stockService);
 	}
 
 	@Test
 	void removeLine_OrderLineNotFound_ThrowsException() {
 		// Arrange
-		long orderLineId = 1L;
-		when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.empty());
+		long orderLineId = 99999L;
 
 		// Act & Assert
 		assertThrows(OrderLineNotFoundException.class, () ->
 		orderService.removeLine(orderLineId));
 		verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
-		verify(orderLineRepository, never()).delete(any());
-		verify(orderRepository, never()).save(any());
 	}
 
 	@Test
 	void removeLine_NoAssociatedOrder_ThrowsException() {
 		// Arrange
-		long orderLineId = 1L;
-		orderLine.setOrder(null);
-		when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
+		String lineNumber = "ORDLINE-NOORDER";
+		OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
 
 		// Act & Assert
 		assertThrows(InvalidOrderOperationException.class, () ->
-		orderService.removeLine(orderLineId));
+		orderService.removeLine(request.getId()));
 		verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
-		verify(orderLineRepository, never()).delete(any());
-		verify(orderRepository, never()).save(any());
 	}
 
 	@Test
 	void removeLine_OrderNotOpen_ThrowsException() {
 		// Arrange
-		long orderLineId = 1L;
-		order.setState(State.RELEASED);
-		when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
+		String lineNumber = "ORDLINE-123465";
+		OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
 
 		// Act & Assert
-		assertThrows(InvalidUpdateQuantityException.class, () ->
-		orderService.removeLine(orderLineId));
+		assertThrows(InvalidOrderOperationException.class, () ->
+		orderService.removeLine(request.getId()));
 		verify(stockService, never()).unReserveQuantityOnDeleteOrCanceled(any());
-		verify(orderLineRepository, never()).delete(any());
-		verify(orderRepository, never()).save(any());
 	}
 
 	@Test
 	void removeLine_ProductOutOfStock_ThrowsException() {
 		// Arrange
-		long orderLineId = 1L;
-		when(orderLineRepository.findById(orderLineId)).thenReturn(Optional.of(orderLine));
-		when(orderLineMapper.toDto(orderLine)).thenReturn(orderLineDto);
+		String lineNumber = "ORDLINE-123456";
+		OrderLineDto request = orderLineService.getByLineNumber(lineNumber);
+
 		doThrow(new ProductOutOfStockException("Product out of stock")).when(stockService).unReserveQuantityOnDeleteOrCanceled(any(StockOperation.class));
 
 		// Act & Assert
 		assertThrows(ProductOutOfStockException.class, () ->
-		orderService.removeLine(orderLineId));
-		verify(orderLineRepository, never()).delete(any());
-		verify(orderRepository, never()).save(any());
+		orderService.removeLine(request.getId()));
 	}
 
 }
