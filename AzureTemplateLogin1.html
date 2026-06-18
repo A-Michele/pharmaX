@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <title>Biorep</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600" />
+
+  <style id="common">
+    @font-face {
+      font-family: "SegoeUI";
+      src: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/fonts/segoeui.WOFF);
+      font-weight: normal;
+    }
+
+    @font-face {
+      font-family: "SegoeUI";
+      src: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/fonts/segoeui_bold.WOFF);
+      font-weight: bold;
+    }
+
+    #AmazonExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/amazon.svg);
+    }
+
+      #AmazonExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/amazon.svg);
+      }
+
+    #FacebookExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/facebook.svg);
+    }
+
+      #FacebookExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/facebook.svg);
+      }
+
+    #GitHubExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/github.svg);
+    }
+
+      #GitHubExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/github.svg);
+      }
+
+    #AppleExchange, #AppleManagedExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/apple.svg);
+    }
+
+      #AppleExchange:hover, #AppleManagedExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/apple.svg);
+      }
+
+    #GoogleExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/google.svg);
+    }
+
+      #GoogleExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/google.svg);
+      }
+
+    #LinkedInExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/linkedin.svg);
+    }
+
+      #LinkedInExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/linkedin.svg);
+      }
+
+    #MicrosoftAccountExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/microsoft.svg);
+    }
+
+      #MicrosoftAccountExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/microsoft.svg);
+      }
+
+    .buttons #cancel:before {
+      content: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/images/left-arrow.svg);
+    }
+  </style>
+
+  <style id="idpselector">
+    #SignInWithLogonNameExchange,
+    #SignUpWithLogonEmailExchange,
+    #SignUpWithLogonNameExchange {
+      background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/colored/local.svg);
+    }
+
+      #SignInWithLogonNameExchange:hover,
+      #SignUpWithLogonEmailExchange:hover,
+      #SignUpWithLogonNameExchange:hover {
+        background-image: url(https://biorepportaletestb2c.b2clogin.com/static/tenant/templates/idp_logos/white/local.svg);
+      }
+
+      #SignUpWithLogonEmailExchange.text-link {
+        background-image: none;
+        background-color: transparent !important;
+      }
+
+        #SignUpWithLogonEmailExchange.text-link:hover {
+          background-image: none;
+          background-color: transparent !important;
+        }
+  </style>
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body, .panel, .panel_layout, .panel_layout_row {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #1a4080;
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      text-align: left;
+    }
+
+    /* ── Background image ── */
+    img[data-tenant-branding-background="true"] {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    div[data-tenant-branding-background-color="true"] {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      z-index: 0;
+    }
+
+      div[data-tenant-branding-background-color="true"]::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.05);
+        z-index: 1;
+      }
+
+    /* ── Layout ── */
+    .container {
+      position: relative;
+      z-index: 2;
+      display: table;
+      width: 100%;
+      height: 100vh;
+      padding: 0;
+      text-align: center;
+    }
+
+    .row {
+      display: table-cell;
+      vertical-align: middle;
+      width: 100%;
+      margin: 0;
+    }
+
+    .col-lg-6 {
+      max-width: 460px;
+      width: 100%;
+      float: none;
+      display: inline-block;
+      vertical-align: top;
+      padding: 0;
+    }
+
+    .unified_container .row .panel-default {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      padding: 44px 40px 36px;
+      margin: 24px auto;
+      height: auto;
+    }
+
+      .unified_container .row .panel-default .panel-body {
+        max-width: 360px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0;
+      }
+
+        .unified_container .row .panel-default .panel-body .companyLogo {
+          display: block;
+          margin: 0 auto 28px;
+        }
+
+        .unified_container .row .panel-default .panel-body img {
+          height: 100px;
+          width: auto;
+          display: block;
+          margin: 0 auto;
+        }
+
+        .unified_container .row .panel-default .panel-body h3 {
+          display: none;
+        }
+
+        .unified_container .row .panel-default .panel-body .companyName {
+          display: none;
+        }
+
+      /* ── API container ── */
+      .unified_container .row .panel-default #api {
+        display: block;
+        width: 100%;
+        margin: 0;
+      }
+
+        /* ── Intro heading ── */
+        .unified_container .row .panel-default #api .intro {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+          .unified_container .row .panel-default #api .intro h2 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+            margin: 0;
+          }
+
+          .unified_container .row .panel-default #api .intro p {
+            font-size: 15px;
+            color: #ffffff;
+            text-align: center;
+          }
+
+        /* ── Divider ── */
+        .unified_container .row .panel-default #api .divider {
+          display: none;
+        }
+
+        /* ── Local account ── */
+        .unified_container .row .panel-default #api .localAccount {
+          width: 100%;
+        }
+
+          .unified_container .row .panel-default #api .localAccount .intro h2 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+            text-align: center;
+          }
+
+          .unified_container .row .panel-default #api .localAccount .error {
+            color: #ff4a4a;
+            text-align: left;
+            font-size: 13px;
+            margin-bottom: 8px;
+          }
+
+          /* ── Inputs (Più leggibili sullo sfondo chiaro) ── */
+          .unified_container .row .panel-default #api .localAccount .entry .entry-item {
+            position: relative;
+            width: 100%;
+            padding: 5px 0;
+            display: block;
+            margin-bottom: 12px;
+          }
+
+            .unified_container .row .panel-default #api .localAccount .entry .entry-item label {
+              display: none;
+            }
+
+            .unified_container .row .panel-default #api .localAccount .entry .entry-item input {
+              outline: 0;
+              width: 100% !important;
+              height: 48px;
+              background: rgba(255, 255, 255, 0.40) !important;
+              background-image: none !important;
+              border: 1px solid rgba(255, 255, 255, 0.60) !important;
+              border-radius: 10px !important;
+              color: #1a4080 !important;
+              font-family: 'Rubik', sans-serif;
+              font-size: 14px;
+              padding: 0 18px;
+              transition: border-color 0.2s, background 0.2s;
+            }
+
+              .unified_container .row .panel-default #api .localAccount .entry .entry-item input::placeholder {
+                color: rgba(26, 64, 128, 0.70);
+              }
+
+              .unified_container .row .panel-default #api .localAccount .entry .entry-item input:focus {
+                border: 1.5px solid #1a4080 !important;
+                background: rgba(255, 255, 255, 0.60) !important;
+              }
+
+            .unified_container .row .panel-default #api .localAccount .entry .entry-item #password {
+              margin-bottom: 4px;
+            }
+
+            .unified_container .row .panel-default #api .localAccount .entry .entry-item .password-label {
+              text-align: left;
+              height: 0;
+              position: relative;
+              margin-top: 4px;
+              display: block;
+              width: 100%;
+            }
+
+    .forgot-password, .forgot-password.center-height {
+      text-align: left;
+      position: relative;
+      margin-top: 4px;
+      display: block;
+    }
+
+      .forgot-password a, #forgotPassword,
+      .unified_container .row .panel-default #api .localAccount .entry .entry-item .password-label #forgotPassword {
+        color: #ffffff;
+        font-size: 13px;
+        text-decoration: underline;
+        position: relative;
+        bottom: -80px;
+        left: 0;
+        display: inline-block;
+      }
+
+        .forgot-password a:hover, #forgotPassword:hover {
+          color: #1a4080;
+        }
+
+    /* ── Remember me ── */
+    .unified_container .row .panel-default #api .localAccount .rememberMe {
+      margin: 10px 0 0 0;
+      text-align: left;
+      width: 100%;
+      color: #ffffff;
+      font-size: 13px;
+    }
+
+      .unified_container .row .panel-default #api .localAccount .rememberMe.align-to-left {
+        margin: 10px 0 0 0;
+        width: 100%;
+      }
+
+    .unified_container .row .panel-default #api .localAccount .entry .buttons {
+      margin: 40px 0 16px;
+      text-align: left;
+    }
+
+      .unified_container .row .panel-default #api .localAccount .entry .buttons button {
+        width: 100%;
+        height: 48px;
+        background: #296ec6;
+        border: 1px solid rgba(41,110,198,0.5);
+        border-radius: 10px;
+        color: #ffffff !important;
+        font-family: 'Rubik', sans-serif;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        margin: 0;
+        padding: 0;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 18px rgba(41,110,198,0.30);
+        margin-top: 20px;
+      }
+
+        .unified_container .row .panel-default #api .localAccount .entry .buttons button:hover {
+          background: #1662c7;
+          box-shadow: 0 6px 22px rgba(41,110,198,0.45);
+          color: #ffffff !important;
+        }
+
+        .unified_container .row .panel-default #api .localAccount .entry .buttons button[aria-disabled="true"] {
+          opacity: 0.4;
+        }
+
+    /* ── Create account link ── */
+    .unified_container .row .panel-default #api .localAccount .create p {
+      text-align: left;
+      margin: 4px 0 12px;
+      color: #ffffff;
+      font-size: 13px;
+    }
+
+    .unified_container .row .panel-default #api .localAccount .create #createAccount {
+      color: #ffffff;
+      font-size: 13px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* ── Social / account buttons ── */
+    .unified_container .row .panel-default #api .social {
+      width: 100%;
+      position: static;
+      top: auto;
+    }
+
+    .unified_container .row .panel-default #api .accountButton,
+    button.accountButton {
+      display: block;
+      width: 100%;
+      height: 46px;
+      margin: 8px 0 0;
+      padding: 0 18px 0 44px;
+      background-color: rgba(255,255,255,0.30);
+      border: 1px solid rgba(255,255,255,0.40);
+      border-radius: 10px;
+      color: #1a4080;
+      font-family: 'Rubik', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: left;
+      background-size: 20px;
+      background-position: 14px 50%;
+      background-repeat: no-repeat;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+      .unified_container .row .panel-default #api .accountButton:hover,
+      button.accountButton:hover {
+        background-color: rgba(255,255,255,0.50);
+        border-color: rgba(255,255,255,0.60);
+        color: #1a4080;
+      }
+
+    #SignInWithLogonNameExchange,
+    #LocalAccountSigninUsernameExchange,
+    #LocalAccountSigninEmailExchange {
+      background-color: #296ec6 !important;
+      border: 1px solid rgba(41,110,198,0.50) !important;
+      color: #ffffff !important;
+      border-radius: 10px !important;
+      height: 46px;
+      width: 100%;
+      font-size: 14px;
+      margin: 8px 0 0;
+    }
+
+      #SignInWithLogonNameExchange:hover,
+      #LocalAccountSigninUsernameExchange:hover,
+      #LocalAccountSigninEmailExchange:hover {
+        background-color: #1662c7 !important;
+        color: #ffffff !important;
+      }
+
+    /* ── Back button ── */
+    .buttons #cancel {
+      background: transparent;
+      border: 0;
+      color: #ffffff;
+      font-size: 14px;
+      padding: 0;
+      cursor: pointer;
+      position: absolute;
+      top: 2px;
+      left: 15px;
+      box-shadow: none;
+      text-align: left;
+    }
+
+      .buttons #cancel:hover {
+        color: #ffffff !important;
+      }
+
+      .buttons #cancel:before {
+        padding: 10px;
+        vertical-align: sub;
+        zoom: 90%;
+        display: inline-block;
+      }
+
+    /* ── Attribute list (registration) ── */
+    #attributeList ul {
+      padding: 0;
+    }
+
+      #attributeList ul li {
+        list-style: none;
+        margin: 10px 0;
+      }
+
+        #attributeList ul li label {
+          display: block;
+          text-align: left;
+          color: #ffffff;
+          font-size: 13px;
+          font-weight: 500;
+          margin-bottom: 4px;
+        }
+
+        #attributeList ul li .attrEntry .itemLevel {
+          display: none;
+        }
+
+        #attributeList ul li input {
+          height: 48px;
+          width: 100%;
+          border-radius: 10px !important;
+          background: rgba(255, 255, 255, 0.40) !important;
+          background-image: none !important;
+          border: 1px solid rgba(255, 255, 255, 0.60) !important;
+          color: #1a4080 !important;
+          font-family: 'Rubik', sans-serif;
+          font-size: 14px;
+          padding: 0 18px;
+          text-indent: 0;
+        }
+
+          #attributeList ul li input::placeholder {
+            color: rgba(26, 64, 128, 0.60);
+          }
+
+        #attributeList ul li .attrEntry.validate input.invalid,
+        #attributeList ul li .attrEntry.validate input:invalid {
+          border: 1px solid #ff4a4a !important;
+        }
+
+        #attributeList ul li .attrEntry .dropdown_single {
+          height: 48px;
+          border-radius: 10px;
+          width: 100%;
+          padding-left: 15px;
+          background: rgba(255, 255, 255, 0.40);
+          border: 1px solid rgba(255, 255, 255, 0.60);
+          color: #1a4080;
+          font-size: 14px;
+        }
+
+        /* Verify buttons */
+        #attributeList ul li .attrEntry .verify .sendButton[id$="ver_but_send"],
+        #attributeList ul li .attrEntry .verificationControlContent .sendCode,
+        #attributeList ul li .attrEntry .verify .verifyButton,
+        #attributeList ul li .attrEntry .verificationControlContent .verifyCode,
+        #attributeList ul li .attrEntry .verify .sendButton[id$="ver_but_resend"],
+        #attributeList ul li .attrEntry .verificationControlContent .sendNewCode,
+        #attributeList ul li .attrEntry .verify .editButton,
+        #attributeList ul li .attrEntry .verificationControlContent .changeClaims {
+          background-color: #296ec6;
+          color: #ffffff;
+          border: 1px solid rgba(41,110,198,0.4);
+          border-radius: 10px;
+          height: 46px;
+          font-family: 'Rubik', sans-serif;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+          #attributeList ul li .attrEntry .verify .sendButton[id$="ver_but_send"]:hover,
+          #attributeList ul li .attrEntry .verificationControlContent .sendCode:hover,
+          #attributeList ul li .attrEntry .verify .verifyButton:hover,
+          #attributeList ul li .attrEntry .verificationControlContent .verifyCode:hover,
+          #attributeList ul li .attrEntry .verify .sendButton[id$="ver_but_resend"]:hover,
+          #attributeList ul li .attrEntry .verificationControlContent .sendNewCode:hover,
+          #attributeList ul li .attrEntry .verify .editButton:hover,
+          #attributeList ul li .attrEntry .verificationControlContent .changeClaims:hover {
+            background-color: #1662c7;
+          }
+
+    /* General buttons */
+    .buttons button {
+      width: 100%;
+      height: 48px;
+      background-color: #296ec6;
+      border: 1px solid rgba(41,110,198,0.4);
+      border-radius: 10px;
+      color: #ffffff;
+      font-family: 'Rubik', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 30px;
+      transition: background 0.2s;
+    }
+
+      .buttons button:hover {
+        background-color: #1662c7;
+      }
+
+      .buttons button[aria-disabled="true"] {
+        opacity: 0.35;
+      }
+
+    .unified_container .row .panel-default #api .localAccount .entry {
+      display: flex;
+      flex-direction: column;
+    }
+
+      .unified_container .row .panel-default #api .localAccount .entry .entry-item {
+        order: 1;
+      }
+
+      .unified_container .row .panel-default #api .localAccount .entry .buttons {
+        order: 2;
+      }
+
+    .unified_container .row .panel-default #api .working,
+    #api .working {
+      order: 3;
+      margin-top: 15px;
+      margin-bottom: 10px;
+    }
+
+    .unified_container .row .panel-default #api .localAccount .error.pageLevel {
+      order: 4;
+      color: #ff4a4a;
+      text-align: left;
+      font-size: 13px;
+      margin-top: 15px;
+      margin-bottom: 0;
+      display: block !important;
+    }
+
+    /* Loader */
+    #api .working {
+      background: url(data:image/gif;base64,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) no-repeat;
+      height: 30px;
+      width: auto;
+      background-position: center bottom;
+    }
+
+    /* ── Modal ── */
+    #simplemodal-overlay {
+      background: #000;
+    }
+
+    #simplemodal-container {
+      background: rgba(20,30,50,0.95);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 30px 24px 20px;
+      text-align: left;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      color: #fff;
+    }
+
+      #simplemodal-container h2 {
+        color: #93c5fd;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+    /* ── Misc ── */
+    p {
+      margin: 0;
+    }
+
+    ul {
+      padding: 0;
+    }
+
+    #attributeList ul li .helpLink {
+      display: none;
+    }
+
+    input[type="email"], input[type="password"], input[type="text"] {
+      -webkit-appearance: none;
+    }
+
+    .working {
+      display: none;
+    }
+
+    #api ul li {
+      display: block;
+      list-style-type: none;
+    }
+
+    #api .intro {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    legend {
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    a {
+      color: #ffffff;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+    }
+
+      a:hover {
+        color: #ffffff;
+      }
+
+    /* ── Responsive ── */
+    @media only screen and (max-width: 600px) {
+      img[data-tenant-branding-background="true"] {
+        display: none;
+      }
+
+      .container {
+        background: linear-gradient(135deg, #1a4080 0%, #296ec6 100%);
+      }
+
+      .unified_container .row .panel-default {
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        min-height: 100vh;
+        padding: 40px 24px;
+        background: rgba(255, 255, 255, 0.20);
+      }
+    }
+
+    @media only screen and (max-width: 350px) {
+      button, input, select {
+        width: 95% !important;
+      }
+
+      .buttons button {
+        margin-left: 0;
+      }
+    }
+
+    #api .localAccount .intro h2,
+    #api .intro h2 {
+      color: #ffffff !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="background_branding_container" data-tenant-branding-background-color="true">
+    <img data-tenant-branding-background="true"
+         src="https://portale-test.azurewebsites.net/assets/content/login/reservedarea-desktop.png"
+         alt="Background Image" />
+  </div>
+  <div class="container unified_container" role="presentation">
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <img class="companyLogo"
+                 data-tenant-branding-logo="true"
+                 src="https://portale-test.azurewebsites.net/assets/content/login/biorep-logo-small.webp"
+                 alt="Company Logo" />
+            <div id="api" role="main"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
